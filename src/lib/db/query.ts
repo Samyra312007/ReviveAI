@@ -245,3 +245,24 @@ export function decideCouncilProposalInDb(
     db.close();
   }
 }
+
+export interface ConversationRow {
+  record_id: string;
+  customer_id: string;
+  turns: string;
+  intent: string | null;
+  resolution: string;
+  created_at: string;
+}
+
+export function getConversationRows(): ConversationRow[] {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    return db
+      .prepare("SELECT * FROM conversations ORDER BY created_at ASC")
+      .all() as ConversationRow[];
+  } finally {
+    db.close();
+  }
+}

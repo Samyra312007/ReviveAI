@@ -18,6 +18,12 @@ import {
   PromiseEvent,
 } from "@/lib/promise/tracker";
 import {
+  runConversation,
+  isConversationEligible,
+  Conversation,
+} from "@/lib/conversation/engine";
+import { channelForAction } from "@/lib/guardrails/rules";
+import {
   RecordDecision,
   AuditOutcome,
   AuditLogEntry,
@@ -37,6 +43,7 @@ export interface RunBatchOptions {
   executor?: RazorpayExecutor;
   enableVoice?: boolean;
   enablePromises?: boolean;
+  enableConversations?: boolean;
   guardrailConfig?: Partial<GuardrailConfig>;
 }
 
@@ -47,6 +54,7 @@ export interface RunBatchResult {
   voiceNotifications: VoiceNotification[];
   promiseUpdates: PromiseRecord[];
   promiseEvents: PromiseEvent[];
+  conversations: Conversation[];
   state: BatchState;
   processingTimeMs: number;
   report: ReturnType<typeof buildReport>;
@@ -211,8 +219,11 @@ export async function runBatch(
   const decisions: RecordDecision[] = [];
   const allGuardrailAudit: GuardrailAuditEntry[] = [];
   const voiceNotifications: VoiceNotification[] = [];
+  const conversations: Conversation[] = [];
+  const conversationPromises: PromiseRecord[] = [];
 
   const enableVoice = options.enableVoice ?? true;
+  const enableConversations = options.enableConversations ?? true;
   let vnNum = 0;
 
   for (const record of records) {
@@ -224,6 +235,52 @@ export async function runBatch(
     );
     decisions.push(decision);
     allGuardrailAudit.push(...guardrailAudit);
+
+    if (
+      enableConversations &&
+      isConversationEligible(record, decision.strategy, decision.outcome) &&
+      rng.float() < 0.55
+    ) {
+      const successProbability = Math.min(
+        0.9,
+        Math.max(0.05, record.ground_truth.expected_recovery_probability),
+      );
+      const convResult = runConversation(
+        record,
+        "failed",
+        successProbability,
+        state.now,
+        () => rng.float(),
+      );
+      conversations.push(convResult.conversation);
+
+      if (convResult.newPromise) {
+        conversationPromises.push(convResult.newPromise);
+      }
+
+      if (convResult.outcomeOverride) {
+        const o = convResult.outcomeOverride;
+        decision.outcome = o.outcome;
+        if (o.outcome === "recovered" && o.amountRecoveredPaise) {
+          decision.amountRecovered = o.amountRecoveredPaise;
+          decision.timeToRecoveryHours = 1;
+        }
+        if (o.outcome === "recovered") {
+          state.interventionCount += 0;
+        } else {
+          state.interventionCount = Math.max(0, state.interventionCount - 1);
+        }
+        if (decision.apiCall) {
+          decision.apiCall = {
+            ...decision.apiCall,
+            response: {
+              ...(decision.apiCall.response as Record<string, unknown>),
+              conversation_resolution: convResult.conversation.resolution,
+            },
+          };
+        }
+      }
+    }
 
     if (
       enableVoice &&
@@ -266,6 +323,7 @@ export async function runBatch(
     promiseUpdates = promiseResult.updatedPromises;
     promiseEvents = promiseResult.events;
   }
+  promiseUpdates = [...promiseUpdates, ...conversationPromises];
 
   const processingTimeMs = Date.now() - startedAt;
   const report = buildReport(decisions, seed, processingTimeMs);
@@ -277,6 +335,7 @@ export async function runBatch(
     voiceNotifications,
     promiseUpdates,
     promiseEvents,
+    conversations,
     state,
     processingTimeMs,
     report,

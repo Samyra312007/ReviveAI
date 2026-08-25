@@ -131,6 +131,15 @@ export function initSchema(db: Database.Database): void {
       approved_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS conversations (
+      record_id TEXT PRIMARY KEY,
+      customer_id TEXT NOT NULL,
+      turns TEXT NOT NULL,
+      intent TEXT,
+      resolution TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_records_type ON records(type);
     CREATE INDEX IF NOT EXISTS idx_records_customer ON records(customer_id);
     CREATE INDEX IF NOT EXISTS idx_promises_record ON promises(record_id);
@@ -348,4 +357,32 @@ export function getCouncilOverrides(
   return db
     .prepare("SELECT parameter, value, rule_source, proposal_id FROM council_overrides")
     .all() as never;
+}
+
+export interface ConversationInsert {
+  record_id: string;
+  customer_id: string;
+  turns: string;
+  intent: string | null;
+  resolution: string;
+  created_at: string;
+}
+
+export function insertConversations(
+  db: Database.Database,
+  conversations: ConversationInsert[],
+): void {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO conversations (
+      record_id, customer_id, turns, intent, resolution, created_at
+    ) VALUES (@record_id, @customer_id, @turns, @intent, @resolution, @created_at)
+  `);
+  const insertAll = db.transaction((all: ConversationInsert[]) => {
+    for (const c of all) stmt.run(c);
+  });
+  insertAll(conversations);
+}
+
+export function clearConversations(db: Database.Database): void {
+  db.prepare("DELETE FROM conversations").run();
 }

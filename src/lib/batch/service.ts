@@ -7,6 +7,8 @@ import {
   insertVoiceNotifications,
   clearVoiceNotifications,
   insertTuningProposals,
+  insertConversations,
+  clearConversations,
 } from "@/lib/db";
 import { runBatch } from "@/lib/agent/core";
 import { SqliteAuditWriter } from "@/lib/audit/logger";
@@ -91,6 +93,18 @@ async function performRun(): Promise<BatchRunResponse> {
       clearVoiceNotifications(db);
       insertVoiceNotifications(db, result.voiceNotifications);
       insertPromises(db, result.promiseUpdates);
+      clearConversations(db);
+      insertConversations(
+        db,
+        result.conversations.map((c) => ({
+          record_id: c.record_id,
+          customer_id: c.customer_id,
+          turns: JSON.stringify(c.turns),
+          intent: c.intent,
+          resolution: c.resolution,
+          created_at: c.created_at,
+        })),
+      );
     });
     persist();
 
@@ -165,6 +179,16 @@ async function performRun(): Promise<BatchRunResponse> {
           sent: result.voiceNotifications.length,
           metrics: voiceMetrics,
           events: result.promiseEvents.length,
+        },
+        conversations: {
+          total: result.conversations.length,
+          by_resolution: result.conversations.reduce<Record<string, number>>(
+            (acc, c) => {
+              acc[c.resolution] = (acc[c.resolution] ?? 0) + 1;
+              return acc;
+            },
+            {},
+          ),
         },
       },
     };

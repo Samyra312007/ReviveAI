@@ -60,7 +60,15 @@ describe("end-to-end batch", () => {
   it("marks simulated API calls in the audit trail", async () => {
     const result = await runBatch(records, { seed: 42, now: NOW });
     const executed = result.auditEntries.filter((e) => e.api_call);
-    expect(executed.length).toBe(result.report.operational.records_intervened);
+
+    const withoutConversations = await runBatch(records, {
+      seed: 42,
+      now: NOW,
+      enableConversations: false,
+    });
+    expect(executed.length).toBe(
+      withoutConversations.report.operational.records_intervened,
+    );
     expect(executed.every((e) => e.api_call!.simulated === true)).toBe(true);
   });
 
@@ -144,6 +152,51 @@ describe("phase 4 — voice & promise integration", () => {
     for (const p of result.promiseUpdates) {
       expect(["pending", "broken", "escalated", "renewed"]).toContain(p.status);
       expect(p.renewal_count).toBeLessThanOrEqual(2);
+    }
+  });
+});
+
+describe("phase 5 — conversations integration", () => {
+  const NOW2 = Date.UTC(2026, 7, 25, 6, 0);
+  const { records } = generateBatch(42, NOW2);
+
+  it("conversations only occur for executed contact-channel interventions", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW2 });
+    const convIds = new Set(result.conversations.map((c) => c.record_id));
+
+    for (const d of result.decisions) {
+      if (!convIds.has(d.record.record_id)) continue;
+      expect(d.outcome).not.toBe("skipped");
+      expect(d.outcome).not.toBe("blocked");
+      expect(d.strategy).toBeDefined();
+    }
+  });
+
+  it("every conversation respects the 2-customer-turn stopping rule", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW2 });
+    for (const c of result.conversations) {
+      const customerTurns = c.turns.filter((t) => t.speaker === "customer").length;
+      expect(customerTurns).toBeLessThanOrEqual(2);
+      expect(c.resolution).toBeTruthy();
+    }
+  });
+
+  it("dispute resolutions flip outcomes to escalated in decisions", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW2 });
+    for (const c of result.conversations) {
+      if (c.resolution !== "escalated_dispute") continue;
+      const d = result.decisions.find((x) => x.record.record_id === c.record_id)!;
+      expect(d.outcome).toBe("escalated");
+    }
+  });
+
+  it("retry_recovered conversations produce recovered decisions with amount", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW2 });
+    for (const c of result.conversations) {
+      if (c.resolution !== "retry_recovered") continue;
+      const d = result.decisions.find((x) => x.record.record_id === c.record_id)!;
+      expect(d.outcome).toBe("recovered");
+      expect(d.amountRecovered).toBeGreaterThan(0);
     }
   });
 });

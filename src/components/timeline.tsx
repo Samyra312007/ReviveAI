@@ -30,7 +30,16 @@ const DOT_COLORS: Record<string, string> = {
   blocked: "bg-fuchsia-500",
 };
 
-export function Timeline({ entries }: { entries: AuditEntry[] }) {
+export function Timeline({
+  entries,
+  conversationMap = {},
+}: {
+  entries: AuditEntry[];
+  conversationMap?: Record<
+    string,
+    { turns: { speaker: string; text: string }[]; intent: string | null; resolution: string }
+  >;
+}) {
   const [filter, setFilter] = useState<string>("all");
   const [expanded, setExpanded] = useState<number | null>(null);
 
@@ -135,6 +144,33 @@ export function Timeline({ entries }: { entries: AuditEntry[] }) {
                     <pre className="mt-1 max-h-40 overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-zinc-400">
                       {JSON.stringify(JSON.parse(e.api_call), null, 2)}
                     </pre>
+                  </div>
+                )}
+                {conversationMap[e.record_id] && (
+                  <div>
+                    <h4 className="font-semibold text-zinc-300">
+                      Customer conversation{" "}
+                      <span className="ml-1 rounded bg-sky-500/15 px-1.5 py-0.5 font-normal text-sky-400">
+                        {conversationMap[e.record_id].resolution.replace(/_/g, " ")}
+                      </span>
+                    </h4>
+                    <div className="mt-2 space-y-1.5">
+                      {conversationMap[e.record_id].turns.map((t, i) => (
+                        <div
+                          key={i}
+                          className={`max-w-[85%] rounded-lg px-3 py-1.5 ${
+                            t.speaker === "customer"
+                              ? "mr-auto bg-zinc-800 text-zinc-300"
+                              : "ml-auto bg-emerald-500/10 text-emerald-300"
+                          }`}
+                        >
+                          <div className="text-[9px] uppercase tracking-wider text-zinc-500">
+                            {t.speaker}
+                          </div>
+                          {t.text}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {e.error && (
