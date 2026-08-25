@@ -31,8 +31,14 @@ describe("end-to-end batch", () => {
       (d) => d.record.type === "control",
     );
     for (const d of controlOutcomes) {
-      expect(d.outcome).toBe("skipped");
+      expect(["skipped", "prevented"]).toContain(d.outcome);
       expect(d.amountRecovered).toBe(0);
+      if (d.outcome === "prevented") {
+        expect(d.strategy?.action).toBe("PREVENT_CARD_UPDATE");
+        expect(
+          d.record.ground_truth.recoverable_amount,
+        ).toBe(0);
+      }
     }
   });
 
@@ -66,9 +72,10 @@ describe("end-to-end batch", () => {
       now: NOW,
       enableConversations: false,
     });
-    expect(executed.length).toBe(
-      withoutConversations.report.operational.records_intervened,
-    );
+    const expectedAttempts =
+      withoutConversations.report.operational.records_intervened +
+      (withoutConversations.report.prevention?.attempts ?? 0);
+    expect(executed.length).toBe(expectedAttempts);
     expect(executed.every((e) => e.api_call!.simulated === true)).toBe(true);
   });
 
@@ -101,7 +108,8 @@ describe("end-to-end batch", () => {
       report.operational.records_intervened +
       report.operational.records_skipped +
       report.operational.records_escalated +
-      report.operational.records_blocked;
+      report.operational.records_blocked +
+      (report.prevention?.prevented ?? 0);
     expect(accounted).toBe(150);
   });
 

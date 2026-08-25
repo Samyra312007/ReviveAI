@@ -2,7 +2,9 @@ import { SyntheticRecord, VoiceNotification, PromiseRecord } from "@/lib/data/sc
 import { Rng } from "@/lib/data/seed";
 import { detectRecord } from "@/lib/detection/engine";
 import { buildContext, createBatchState, BatchState, toIstParts } from "./context";
-import { selectStrategy, StrategyAction } from "./strategy";
+import { selectStrategy, Strategy, StrategyAction } from "./strategy";
+import { DetectionResult } from "@/lib/detection/types";
+import { assessPreventionRisk, PreventionAssessment } from "@/lib/prevention/scorer";
 import { GuardrailConfig } from "@/lib/guardrails/config";
 import { evaluateGuardrails } from "@/lib/guardrails/engine";
 import { GuardrailAuditEntry } from "@/lib/guardrails/engine";
@@ -22,7 +24,6 @@ import {
   isConversationEligible,
   Conversation,
 } from "@/lib/conversation/engine";
-import { channelForAction } from "@/lib/guardrails/rules";
 import {
   RecordDecision,
   AuditOutcome,
@@ -44,6 +45,7 @@ export interface RunBatchOptions {
   enableVoice?: boolean;
   enablePromises?: boolean;
   enableConversations?: boolean;
+  enablePrevention?: boolean;
   guardrailConfig?: Partial<GuardrailConfig>;
 }
 
@@ -78,15 +80,92 @@ function nextVoiceWindowStart(now: number): number {
   return target - IST_OFFSET_MS;
 }
 
+const PREVENTION_SUCCESS_PROBABILITY = 0.65;
+
+async function runPrevention(
+  record: SyntheticRecord,
+  detection: DetectionResult,
+  assessment: PreventionAssessment,
+  state: BatchState,
+  executor: RazorpayExecutor,
+  rng: Rng,
+): Promise<{ decision: RecordDecision; guardrailAudit: GuardrailAuditEntry[] }> {
+  const strategy: Strategy = {
+    action: "PREVENT_CARD_UPDATE",
+    reasoning: `Prevention: ${assessment.reasoning} — proactive card-update nudge`,
+  };
+
+  const { outcome: guardrailOutcome, auditEntries } = evaluateGuardrails(
+    record,
+    strategy,
+    state,
+  );
+
+  if (!guardrailOutcome.passed) {
+    return {
+      decision: {
+        record,
+        detection,
+        strategy,
+        guardrailChecks: guardrailOutcome.checks,
+        outcome: "blocked",
+        amountRecovered: 0,
+      },
+      guardrailAudit: auditEntries,
+    };
+  }
+
+  const execution = await executor.execute(
+    "PREVENT_CARD_UPDATE",
+    record,
+    PREVENTION_SUCCESS_PROBABILITY,
+    rng,
+  );
+
+  const prevented = execution.success && !execution.error;
+
+  state.interventionCount++;
+  state.lastContactAt.set(record.customer_id, state.now);
+
+  return {
+    decision: {
+      record,
+      detection,
+      strategy,
+      guardrailChecks: guardrailOutcome.checks,
+      apiCall: execution.api_call,
+      outcome: prevented ? "prevented" : "skipped",
+      amountRecovered: 0,
+      error: execution.error,
+    },
+    guardrailAudit: [],
+  };
+}
+
+export interface ProcessRecordOptions {
+  enablePrevention?: boolean;
+}
+
 export async function processRecord(
   record: SyntheticRecord,
   state: BatchState,
   executor: RazorpayExecutor,
   rng: Rng,
+  options: ProcessRecordOptions = {},
 ): Promise<{ decision: RecordDecision; guardrailAudit: GuardrailAuditEntry[] }> {
   const detection = detectRecord(record, state.now);
 
   if (detection.route === "no_action" || detection.route === "skip") {
+    if (
+      options.enablePrevention &&
+      detection.route === "no_action" &&
+      record.type === "control"
+    ) {
+      const assessment = assessPreventionRisk(record);
+      if (assessment.flagged) {
+        return runPrevention(record, detection, assessment, state, executor, rng);
+      }
+    }
     return {
       decision: { record, detection, outcome: "skipped", amountRecovered: 0 },
       guardrailAudit: [],
@@ -232,6 +311,7 @@ export async function runBatch(
       state,
       executor,
       rng,
+      { enablePrevention: options.enablePrevention ?? true },
     );
     decisions.push(decision);
     allGuardrailAudit.push(...guardrailAudit);

@@ -9,7 +9,8 @@ export type AuditOutcome =
   | "failed"
   | "escalated"
   | "skipped"
-  | "blocked";
+  | "blocked"
+  | "prevented";
 
 export interface AuditLogEntry {
   timestamp: string;

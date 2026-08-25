@@ -19,14 +19,6 @@ interface CouncilProposal {
   decided_at: string | null;
 }
 
-interface CouncilOverride {
-  parameter: string;
-  value: number;
-  rule_source: string;
-  proposal_id: string;
-  approved_at: string;
-}
-
 function formatInr(paise: number): string {
   return `₹${(paise / 100).toLocaleString("en-IN")}`;
 }

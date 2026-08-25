@@ -38,7 +38,13 @@ export function computeAccuracy(
     const record = d.record;
     const gtRecoverable = record.ground_truth.recoverable;
     const isControl = record.type === "control";
+    const isPrevention =
+      d.outcome === "prevented" || d.strategy?.action === "PREVENT_CARD_UPDATE";
     const intervened = ["recovered", "failed"].includes(d.outcome);
+
+    if (isControl && isPrevention) {
+      continue;
+    }
 
     const counts = perCategory.get(record.type) ?? emptyCounts();
     if (!perCategory.has(record.type)) perCategory.set(record.type, counts);

@@ -18,6 +18,7 @@ export type StrategyAction =
   | "FIRM_NOTICE"
   | "PAYMENT_PLAN_OFFER"
   | "ESCALATE_LEGAL"
+  | "PREVENT_CARD_UPDATE"
   | "NO_ACTION";
 
 export interface Strategy {

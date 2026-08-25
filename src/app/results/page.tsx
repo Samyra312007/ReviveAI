@@ -1,5 +1,5 @@
 import { getReportJson } from "@/lib/db/query";
-import { MetricCard, PageHeader, EmptyState, Table, ProgressBar } from "@/components/ui";
+import { MetricCard, PageHeader, EmptyState, Table, ProgressBar, formatInr } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,12 @@ interface Report {
     intervention_cost_paise: number;
     net_recovered_paise: number;
     roi_multiple: number | null;
+  };
+  prevention?: {
+    flagged_customers: number;
+    attempts: number;
+    prevented: number;
+    protected_amount_paise: number;
   };
 }
 
@@ -102,6 +108,28 @@ export default function ResultsPage() {
           ))}
         </Table>
       </section>
+
+      {report.prevention && report.prevention.flagged_customers > 0 && (
+        <section className="mt-10 rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-transparent p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold text-sky-300">
+              Prevention — revenue protected before it was ever lost
+            </h2>
+            <span className="text-2xl font-bold tabular-nums text-sky-400">
+              +{formatInr(report.prevention.protected_amount_paise)} protected
+            </span>
+          </div>
+          <p className="mt-2 max-w-3xl text-sm text-zinc-400">
+            The agent scored healthy customers for churn risk and proactively
+            nudged card updates for {report.prevention.flagged_customers} of
+            them. {report.prevention.prevented} completed the update, protecting{" "}
+            {formatInr(report.prevention.protected_amount_paise)} of future
+            recurring revenue. Prevention is tracked separately from recovery —
+            it never inflates the recovered headline and is excluded from
+            detection accuracy scoring.
+          </p>
+        </section>
+      )}
 
       <section className="mt-10">
         <h2 className="mb-3 text-lg font-semibold">Detection Accuracy vs Ground Truth</h2>

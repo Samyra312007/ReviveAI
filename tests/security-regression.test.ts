@@ -32,6 +32,12 @@ describe("SECURITY REGRESSION — post-remediation guarantees", () => {
   it(
     "VULN-002/003 fixed: server-authoritative seed and time — attacker cannot influence report",
     async () => {
+      const { openDb } = await import("@/lib/db");
+      const db = openDb();
+      db.prepare("DELETE FROM council_overrides").run();
+      db.prepare("DELETE FROM tuning_proposals").run();
+      db.close();
+
       const first = await executeBatchRun(DEMO_BATCH_TOKEN);
       expect(first.status).toBe(200);
       const rateA = (first.body.report as { hero: { recovery_rate_pct: number } })

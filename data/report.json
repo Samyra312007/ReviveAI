@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-25T21:19:00.903Z",
+  "generated_at": "2026-08-25T21:44:11.631Z",
   "batch_id": "batch_2026-08-25_seed42",
   "seed": 42,
   "hero": {
     "recovered_display": "₹4,82,700",
     "at_risk_display": "₹12,57,691",
     "recovery_rate_pct": 38.4,
-    "roi_display": "13463.4x"
+    "roi_display": "13169.5x"
   },
   "recovery": {
     "at_risk_paise": 125769100,
@@ -68,7 +68,7 @@
       "category": "overall",
       "tp": 120,
       "fp": 1,
-      "tn": 27,
+      "tn": 23,
       "fn": 2,
       "precision": 0.992,
       "recall": 0.984,
@@ -119,14 +119,14 @@
         "category": "control",
         "tp": 0,
         "fp": 0,
-        "tn": 20,
+        "tn": 16,
         "fn": 0,
         "precision": null,
         "recall": null,
         "f1": null
       }
     ],
-    "false_positive_rate": 0.036
+    "false_positive_rate": 0.042
   },
   "guardrails": {
     "total_blocks": 1,
@@ -236,16 +236,23 @@
   "operational": {
     "total_records": 150,
     "records_intervened": 107,
-    "records_skipped": 28,
+    "records_skipped": 25,
     "records_escalated": 14,
     "records_blocked": 1,
-    "api_calls_made": 108,
+    "records_prevented": 3,
+    "api_calls_made": 112,
     "api_errors": 0,
-    "processing_time_ms": 28
+    "processing_time_ms": 36
   },
   "cost_benefit": {
-    "intervention_cost_paise": 3585,
-    "net_recovered_paise": 48266415,
-    "roi_multiple": 13463.4
+    "intervention_cost_paise": 3665,
+    "net_recovered_paise": 48266335,
+    "roi_multiple": 13169.5
+  },
+  "prevention": {
+    "flagged_customers": 4,
+    "attempts": 4,
+    "prevented": 3,
+    "protected_amount_paise": 11283900
   }
 }

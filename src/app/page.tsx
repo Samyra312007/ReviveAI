@@ -23,7 +23,8 @@ interface Report {
     false_positive_rate: number;
   };
   guardrails: { total_blocks: number; block_rate: number };
-  operational: { total_records: number; records_intervened: number; records_skipped: number; records_escalated: number; records_blocked: number };
+  operational: { total_records: number; records_intervened: number; records_skipped: number; records_escalated: number; records_blocked: number; records_prevented?: number };
+  prevention?: { prevented: number; protected_amount_paise: number };
 }
 
 const PAGES = [
@@ -86,6 +87,14 @@ export default function DashboardPage() {
           sub={`precision ${report.accuracy.overall.precision ?? "—"} · recall ${report.accuracy.overall.recall ?? "—"}`}
           accent="text-violet-400"
         />
+        {report.prevention && report.prevention.prevented > 0 && (
+          <MetricCard
+            label="Revenue Protected"
+            value={`+₹${(report.prevention.protected_amount_paise / 100).toLocaleString("en-IN")}`}
+            sub={`${report.prevention.prevented} churn-risk customers retained pre-failure`}
+            accent="text-sky-300"
+          />
+        )}
       </div>
 
       <div className="mt-8">

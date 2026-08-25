@@ -1,7 +1,6 @@
 import { GuardrailConfig } from "@/lib/guardrails/config";
 import { runBatch } from "@/lib/agent/core";
 import { loadBatchDataset, attachPromiseHistories } from "@/lib/batch/data-loader";
-import { DEFAULT_GUARDRAIL_CONFIG } from "@/lib/guardrails/config";
 
 const SERVER_SEED = 42;
 const SERVER_NOW = Date.UTC(2026, 7, 25, 6, 0);
@@ -24,9 +23,6 @@ export const SIMULATION_RANGES: Record<keyof GuardrailConfig, NumericRange> = {
   maxVoicePerWeek: { min: 1, max: 3, integer: true },
 };
 
-const CONFIG_KEYS = Object.keys(
-  SIMULATION_RANGES,
-) as (keyof GuardrailConfig)[];
 
 export function clampOverrides(
   input: unknown,

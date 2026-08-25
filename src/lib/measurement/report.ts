@@ -7,6 +7,7 @@ import {
   formatInr,
   computeOperational,
   computeCostBenefit,
+  computePrevention,
 } from "./metrics";
 
 export function buildReport(
@@ -76,5 +77,6 @@ export function buildReport(
     exceptions,
     operational,
     cost_benefit: costBenefit satisfies CostBenefit,
+    prevention: computePrevention(decisions),
   };
 }

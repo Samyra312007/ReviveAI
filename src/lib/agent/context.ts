@@ -1,5 +1,5 @@
 import { SyntheticRecord } from "@/lib/data/schema";
-import { DEFAULT_GUARDRAIL_CONFIG, GuardrailConfig, resolveGuardrailConfig } from "@/lib/guardrails/config";
+import { GuardrailConfig, resolveGuardrailConfig } from "@/lib/guardrails/config";
 
 export interface CustomerContext {
   customerValue: "high" | "mid" | "low";

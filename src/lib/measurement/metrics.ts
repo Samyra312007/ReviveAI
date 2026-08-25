@@ -15,6 +15,7 @@ export const CHANNEL_UNIT_COSTS_PAISE: Record<string, number> = {
   REQUEST_CARD_UPDATE: 50,
   CARD_UPDATE_REQUEST: 50,
   MANDATE_RETRY: 50,
+  PREVENT_CARD_UPDATE: 20,
 };
 
 export interface OperationalMetrics {
@@ -23,9 +24,17 @@ export interface OperationalMetrics {
   records_skipped: number;
   records_escalated: number;
   records_blocked: number;
+  records_prevented: number;
   api_calls_made: number;
   api_errors: number;
   processing_time_ms: number;
+}
+
+export interface PreventionMetrics {
+  flagged_customers: number;
+  attempts: number;
+  prevented: number;
+  protected_amount_paise: number;
 }
 
 export interface CostBenefit {
@@ -60,6 +69,7 @@ export interface BatchReport {
   }[];
   operational: OperationalMetrics;
   cost_benefit: CostBenefit;
+  prevention?: PreventionMetrics;
 }
 
 export function formatInr(paise: number): string {
@@ -74,11 +84,13 @@ export function computeOperational(
   let skipped = 0;
   let escalated = 0;
   let blocked = 0;
+  let prevented = 0;
   let apiCalls = 0;
   let errors = 0;
 
   for (const d of decisions) {
     if (d.outcome === "recovered" || d.outcome === "failed") intervened++;
+    else if (d.outcome === "prevented") prevented++;
     else if (d.outcome === "skipped") skipped++;
     else if (d.outcome === "escalated") escalated++;
     else if (d.outcome === "blocked") blocked++;
@@ -92,9 +104,26 @@ export function computeOperational(
     records_skipped: skipped,
     records_escalated: escalated,
     records_blocked: blocked,
+    records_prevented: prevented,
     api_calls_made: apiCalls,
     api_errors: errors,
     processing_time_ms: Math.round(processingTimeMs),
+  };
+}
+
+export function computePrevention(decisions: RecordDecision[]): PreventionMetrics {
+  const attempts = decisions.filter(
+    (d) => d.strategy?.action === "PREVENT_CARD_UPDATE",
+  );
+  const successes = attempts.filter((d) => d.outcome === "prevented");
+  return {
+    flagged_customers: attempts.length,
+    attempts: attempts.length,
+    prevented: successes.length,
+    protected_amount_paise: successes.reduce(
+      (s, d) => s + d.record.amount,
+      0,
+    ),
   };
 }
 
