@@ -240,9 +240,12 @@ export interface GenerationResult {
   seed: number;
 }
 
-export function generateBatch(seed: number = DEFAULT_SEED): GenerationResult {
+export function generateBatch(
+  seed: number = DEFAULT_SEED,
+  nowMs: number = Date.now(),
+): GenerationResult {
   const rng = new Rng(seed);
-  const now = Date.now();
+  const now = nowMs;
   const records: SyntheticRecord[] = [];
   const promises: PromiseRecord[] = [];
   const usedCustomerIds = new Set<string>();

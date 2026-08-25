@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { OutcomeBadge } from "./ui";
+import { buildCsv } from "@/lib/csv";
 
 interface AuditEntry {
   id: number;
@@ -68,23 +69,21 @@ export function AuditLog({
       "action_taken", "outcome", "amount_recovered_paise",
       "time_to_recovery_hours", "decision_reasoning",
     ];
-    const lines = filtered.map((e) =>
-      [
-        e.timestamp,
-        e.record_id,
-        e.customer_id,
-        e.detected_category ?? "",
-        e.detected_subcategory ?? "",
-        e.detection_confidence ?? "",
-        e.selected_strategy ?? "",
-        e.action_taken ?? "",
-        e.outcome,
-        e.amount_recovered ?? "",
-        e.time_to_recovery_hours ?? "",
-        `"${(e.decision_reasoning ?? "").replace(/"/g, '""')}"`,
-      ].join(","),
-    );
-    const blob = new Blob([[headers.join(","), ...lines].join("\n")], {
+    const rows = filtered.map((e) => [
+      e.timestamp,
+      e.record_id,
+      e.customer_id,
+      e.detected_category ?? "",
+      e.detected_subcategory ?? "",
+      e.detection_confidence ?? "",
+      e.selected_strategy ?? "",
+      e.action_taken ?? "",
+      e.outcome,
+      e.amount_recovered ?? "",
+      e.time_to_recovery_hours ?? "",
+      e.decision_reasoning ?? "",
+    ]);
+    const blob = new Blob([buildCsv(headers, rows)], {
       type: "text/csv",
     });
     const url = URL.createObjectURL(blob);

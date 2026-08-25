@@ -152,8 +152,12 @@ export function getVoiceRows(): VoiceRow[] {
   }
 }
 
-export function getReportJson(): unknown {
-  const reportPath = `${process.cwd()}/data/report.json`;
-  if (!fs.existsSync(reportPath)) return null;
-  return JSON.parse(fs.readFileSync(reportPath, "utf-8"));
+export function getReportJson(reportPath?: string): unknown {
+  const resolved = reportPath ?? `${process.cwd()}/data/report.json`;
+  if (!fs.existsSync(resolved)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(resolved, "utf-8"));
+  } catch {
+    return null;
+  }
 }

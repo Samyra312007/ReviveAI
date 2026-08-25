@@ -13,7 +13,10 @@ export function openDb(dbPath: string = DB_PATH): Database.Database {
   return db;
 }
 
+let schemaInitialized = false;
+
 export function initSchema(db: Database.Database): void {
+  if (schemaInitialized) return;
   db.exec(`
     CREATE TABLE IF NOT EXISTS records (
       record_id TEXT PRIMARY KEY,
@@ -110,6 +113,7 @@ export function initSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_audit_outcome ON audit_log(outcome);
     CREATE INDEX IF NOT EXISTS idx_voice_record ON voice_notifications(record_id);
   `);
+  schemaInitialized = true;
 }
 
 interface RecordRow extends Omit<SyntheticRecord, "voice_opt_in" | "promise_history"> {

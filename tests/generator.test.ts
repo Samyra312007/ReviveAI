@@ -137,8 +137,9 @@ describe("generateBatch", () => {
   });
 
   it("is deterministic for the same seed", () => {
-    const a = generateBatch(DEFAULT_SEED);
-    const b = generateBatch(DEFAULT_SEED);
+    const fixedClock = Date.UTC(2026, 7, 25, 6, 0);
+    const a = generateBatch(DEFAULT_SEED, fixedClock);
+    const b = generateBatch(DEFAULT_SEED, fixedClock);
     expect(a.records).toEqual(b.records);
     expect(a.promises).toEqual(b.promises);
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProgressBar } from "./ui";
 
@@ -20,6 +20,13 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
   const [count, setCount] = useState(0);
   const [result, setResult] = useState<RunResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   async function runBatch() {
     setRunning(true);
@@ -28,7 +35,7 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
     setCount(0);
 
     let fake = 0;
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       fake = Math.min(totalRecords - 1, fake + Math.ceil(Math.random() * 9));
       setCount(fake);
     }, 90);
@@ -36,11 +43,14 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
     try {
       const res = await fetch("/api/batch/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seed: 42 }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-batch-token":
+            process.env.NEXT_PUBLIC_BATCH_TOKEN ?? "reviveai-demo-token",
+        },
       });
       const data: RunResponse = await res.json();
-      clearInterval(timer);
+      if (timerRef.current) clearInterval(timerRef.current);
       if (!res.ok || data.error) {
         setError(data.error ?? "Batch failed");
       } else {
@@ -49,7 +59,7 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
         router.refresh();
       }
     } catch {
-      clearInterval(timer);
+      if (timerRef.current) clearInterval(timerRef.current);
       setError("Network error while running batch");
     } finally {
       setRunning(false);

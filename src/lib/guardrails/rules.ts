@@ -233,12 +233,8 @@ export const RULES: Rule[] = [
     id: "C3",
     description: "No intervention on fraud-flagged accounts",
     applies: () => true,
-    check: ({ record, strategy }) =>
-      !(
-        record.subcategory === "fraud_hold" ||
-        /fraud/i.test(record.failure_reason) ||
-        strategy.action === "RETRY_IMMEDIATELY" && /fraud/i.test(record.customer_id)
-      )
+    check: ({ record }) =>
+      !(record.subcategory === "fraud_hold" || /fraud/i.test(record.failure_reason))
         ? { passed: true }
         : {
             passed: false,

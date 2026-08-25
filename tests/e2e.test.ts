@@ -5,8 +5,8 @@ import { generateBatch } from "@/lib/data/generator";
 import { InMemoryAuditWriter } from "@/lib/audit/logger";
 
 describe("end-to-end batch", () => {
-  const { records } = generateBatch(42);
   const NOW = Date.UTC(2026, 7, 25, 6, 0);
+  const { records } = generateBatch(42, NOW);
 
   it("processes every record exactly once with an audit entry", async () => {
     const writer = new InMemoryAuditWriter();
@@ -111,8 +111,8 @@ describe("end-to-end batch", () => {
 });
 
 describe("phase 4 — voice & promise integration", () => {
-  const { records } = generateBatch(42);
   const NOW = Date.UTC(2026, 7, 25, 6, 0);
+  const { records } = generateBatch(42, NOW);
 
   it("generates voice notifications only for executed, opt-in records within IST window", async () => {
     const result = await runBatch(records, { seed: 42, now: NOW });
