@@ -13,6 +13,7 @@ import { SqliteAuditWriter } from "@/lib/audit/logger";
 import { computeVoiceMetrics } from "@/lib/voice/tracker";
 import { generateTuningProposals, BlockObservation } from "@/lib/council/analyzer";
 import { DEMO_BATCH_TOKEN, isTokenAuthorized } from "@/lib/auth";
+import { loadBatchDataset, attachPromiseHistories } from "@/lib/batch/data-loader";
 
 export { DEMO_BATCH_TOKEN };
 
@@ -39,16 +40,15 @@ export function executeBatchRun(token: string | null): Promise<BatchRunResponse>
   return inFlight;
 }
 
-interface RecordRow {
-  [key: string]: unknown;
-  ground_truth: string;
-  voice_opt_in: number;
-}
-
 async function performRun(): Promise<BatchRunResponse> {
   const dbPath = path.join(process.cwd(), "data", "synthetic.db");
   if (!fs.existsSync(dbPath)) {
     return { status: 404, body: { error: "No dataset. Run npm run generate-data first." } };
+  }
+
+  const dataset = loadBatchDataset(dbPath);
+  if (!dataset) {
+    return { status: 404, body: { error: "Dataset empty." } };
   }
 
   const db = openDb(dbPath);
@@ -77,39 +77,7 @@ async function performRun(): Promise<BatchRunResponse> {
       ).map((r) => r.parameter),
     );
 
-    const rows = db
-      .prepare("SELECT * FROM records ORDER BY record_id")
-      .all() as RecordRow[];
-    if (rows.length === 0) {
-      return { status: 404, body: { error: "Dataset empty." } };
-    }
-
-    const records = rows.map((row) => ({
-      ...row,
-      voice_opt_in: row.voice_opt_in === 1,
-      ground_truth: JSON.parse(row.ground_truth as string),
-    })) as never as Parameters<typeof runBatch>[0];
-
-    const promiseRows = db
-      .prepare("SELECT * FROM promises")
-      .all() as {
-      [key: string]: unknown;
-      record_id: string;
-      reminders_sent: string;
-    }[];
-    const promisesByRecord = new Map<string, unknown>();
-    for (const p of promiseRows) {
-      promisesByRecord.set(p.record_id, {
-        ...p,
-        reminders_sent: JSON.parse(p.reminders_sent),
-      });
-    }
-    for (const r of records) {
-      const history = promisesByRecord.get(r.record_id);
-      if (history && typeof r === "object" && r !== null) {
-        (r as { promise_history?: unknown }).promise_history = [history];
-      }
-    }
+    const records = attachPromiseHistories(dataset);
 
     const result = await runBatch(records, {
       seed: SERVER_SEED,

@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/results", label: "Results" },
   { href: "/timeline", label: "Timeline" },
   { href: "/council", label: "Council" },
+  { href: "/simulator", label: "Simulator" },
   { href: "/guardrails", label: "Guardrails" },
   { href: "/exceptions", label: "Exceptions" },
   { href: "/audit", label: "Audit Log" },
