@@ -82,7 +82,7 @@ export function generateTuningProposals(
 
   const proposals: TuningProposalInsert[] = [];
 
-  for (const [ruleId, observations] of byRule) {
+  for (const [ruleId] of byRule) {
     const tweak = TWEAKS[ruleId];
     if (!tweak) continue;
 

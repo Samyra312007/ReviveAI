@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/audit", label: "Audit Log" },
   { href: "/voice", label: "Voice" },
   { href: "/promises", label: "Promises" },
+  { href: "/fleet", label: "Fleet" },
 ];
 
 export function Nav() {
