@@ -44,6 +44,8 @@ export interface RecordDecision {
   detection: DetectionResult;
   strategy?: Strategy;
   guardrailChecks?: GuardrailCheckResult[];
+  /** Rule IDs that fired during pause/queue resolution loops before passing */
+  resolvedGuardrailBlocks?: string[];
   apiCall?: ApiCallRecord;
   outcome: AuditOutcome;
   amountRecovered: number;

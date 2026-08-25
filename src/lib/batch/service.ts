@@ -1,12 +1,20 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { openDb, initSchema, insertPromises, insertVoiceNotifications, clearVoiceNotifications } from "@/lib/db";
+import {
+  openDb,
+  initSchema,
+  insertPromises,
+  insertVoiceNotifications,
+  clearVoiceNotifications,
+  insertTuningProposals,
+} from "@/lib/db";
 import { runBatch } from "@/lib/agent/core";
 import { SqliteAuditWriter } from "@/lib/audit/logger";
 import { computeVoiceMetrics } from "@/lib/voice/tracker";
+import { generateTuningProposals, BlockObservation } from "@/lib/council/analyzer";
+import { DEMO_BATCH_TOKEN, isTokenAuthorized } from "@/lib/auth";
 
-export const DEMO_BATCH_TOKEN = "reviveai-demo-token";
+export { DEMO_BATCH_TOKEN };
 
 const SERVER_SEED = 42;
 const SERVER_NOW = Date.UTC(2026, 7, 25, 6, 0);
@@ -16,17 +24,10 @@ export interface BatchRunResponse {
   body: Record<string, unknown>;
 }
 
-function tokensMatch(provided: string | null): boolean {
-  const expected = process.env.BATCH_TOKEN || DEMO_BATCH_TOKEN;
-  const a = Buffer.from(provided ?? "", "utf8");
-  const b = Buffer.from(expected, "utf8");
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
 let inFlight: Promise<BatchRunResponse> | null = null;
 
 export function executeBatchRun(token: string | null): Promise<BatchRunResponse> {
-  if (!tokensMatch(token)) {
+  if (!isTokenAuthorized(token)) {
     return Promise.resolve({ status: 401, body: { error: "Unauthorized — missing or invalid x-batch-token" } });
   }
   if (inFlight) {
@@ -53,6 +54,29 @@ async function performRun(): Promise<BatchRunResponse> {
   const db = openDb(dbPath);
   try {
     initSchema(db);
+
+    const overrideRows = db
+      .prepare("SELECT parameter, value FROM council_overrides")
+      .all() as { parameter: string; value: number }[];
+    const guardrailOverrides = Object.fromEntries(
+      overrideRows.map((o) => [o.parameter, o.value]),
+    );
+
+    const pendingParams = new Set(
+      (
+        db
+          .prepare("SELECT DISTINCT parameter FROM tuning_proposals WHERE status = 'pending'")
+          .all() as { parameter: string }[]
+      ).map((r) => r.parameter),
+    );
+    const rejectedParams = new Set(
+      (
+        db
+          .prepare("SELECT DISTINCT parameter FROM tuning_proposals WHERE status = 'rejected'")
+          .all() as { parameter: string }[]
+      ).map((r) => r.parameter),
+    );
+
     const rows = db
       .prepare("SELECT * FROM records ORDER BY record_id")
       .all() as RecordRow[];
@@ -90,6 +114,7 @@ async function performRun(): Promise<BatchRunResponse> {
     const result = await runBatch(records, {
       seed: SERVER_SEED,
       now: SERVER_NOW,
+      guardrailConfig: guardrailOverrides,
     });
 
     const persist = db.transaction(() => {
@@ -100,6 +125,49 @@ async function performRun(): Promise<BatchRunResponse> {
       insertPromises(db, result.promiseUpdates);
     });
     persist();
+
+    const blocks: BlockObservation[] = [];
+    for (const d of result.decisions) {
+      if (d.outcome !== "blocked") continue;
+      for (const check of d.guardrailChecks ?? []) {
+        if (!check.passed) {
+          blocks.push({
+            rule_id: check.rule_id,
+            record_id: d.record.record_id,
+            recovery_probability:
+              d.record.ground_truth.expected_recovery_probability,
+            recoverable_amount_paise: d.record.ground_truth.recoverable_amount,
+          });
+        }
+      }
+    }
+
+    for (const d of result.decisions) {
+      if (d.outcome !== "recovered" && d.outcome !== "failed") continue;
+      for (const ruleId of d.resolvedGuardrailBlocks ?? []) {
+        blocks.push({
+          rule_id: ruleId,
+          record_id: d.record.record_id,
+          recovery_probability:
+            d.record.ground_truth.expected_recovery_probability,
+          recoverable_amount_paise: d.record.ground_truth.recoverable_amount,
+        });
+      }
+    }
+
+    const proposals = generateTuningProposals(blocks, {
+      config: result.state.config,
+      pendingParameters: pendingParams,
+      overriddenParameters: new Set(overrideRows.map((o) => o.parameter)),
+      rejectedParameters: rejectedParams,
+      nowMs: Date.now(),
+    });
+
+    let proposalsInserted = 0;
+    if (proposals.length > 0) {
+      insertTuningProposals(db, proposals);
+      proposalsInserted = proposals.length;
+    }
 
     const reportPath = path.join(process.cwd(), "data", "report.json");
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
@@ -116,7 +184,15 @@ async function performRun(): Promise<BatchRunResponse> {
         ok: true,
         processed: result.decisions.length,
         processing_time_ms: result.processingTimeMs,
-        report: result.report,
+        report: {
+          ...result.report,
+          council: {
+            applied_overrides: overrideRows.map((o) => o.parameter),
+            active_override_values: guardrailOverrides,
+            proposals_generated: proposalsInserted,
+            blocked_observations_analyzed: blocks.length,
+          },
+        },
         voice: {
           sent: result.voiceNotifications.length,
           metrics: voiceMetrics,

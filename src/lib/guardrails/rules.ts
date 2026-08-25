@@ -80,44 +80,39 @@ type Rule = {
   check: (ctx: RuleContext) => { passed: boolean; block_reason?: string; action_taken?: GuardrailActionTaken };
 };
 
-const MAX_RETRIES_PER_RECORD = 2;
-const MAX_RETRIES_PER_CUSTOMER_DAY = 3;
-const MAX_INTERVENTION_RATIO = 0.8;
-const QUIET_START_HOUR = 21;
-const QUIET_END_HOUR = 8;
-const COOLDOWN_HOURS = 4;
-const CHECKOUT_NUDGE_WINDOW_HOURS = 2;
-const SUBSCRIPTION_RETRY_WINDOW_HOURS = 24 * 7;
-const MAX_SMS_PER_DAY = 1;
-const APPROVAL_THRESHOLD_PAISE = 50000 * 100;
-const DAILY_VOLUME_CAP_PAISE = 500000 * 100;
-const ROI_COST_RATIO = 0.3;
-const MAX_VOICE_PER_WEEK = 1;
 const VOICE_QUIET_START = 20;
 const VOICE_QUIET_END = 9;
 const MAX_VOICE_ATTEMPTS_BEFORE_TEXT = 3;
+const MAX_PROMISE_RENEWALS = 2;
+
+function formatInrShort(paise: number): string {
+  return `₹${(paise / 100).toLocaleString("en-IN")}`;
+}
 
 export const RULES: Rule[] = [
   {
     id: "A1",
-    description: "Max retries per record = 2",
+    description: "Max retries per record",
     applies: () => true,
-    check: ({ record, state }) =>
-      (state.retriesPerRecord.get(record.record_id) ?? 0) < MAX_RETRIES_PER_RECORD
+    check: ({ record, state }) => {
+      const max = state.config.maxRetriesPerRecord;
+      return (state.retriesPerRecord.get(record.record_id) ?? 0) < max
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Retry limit exceeded (${MAX_RETRIES_PER_RECORD})`,
+            block_reason: `Retry limit exceeded (${max})`,
             action_taken: "SKIP",
-          },
+          };
+    },
   },
   {
     id: "A2",
-    description: "Max retries per customer per day = 3",
+    description: "Max retries per customer per day",
     applies: () => true,
     check: ({ record, state, dayKey }) => {
+      const max = state.config.maxRetriesPerCustomerDay;
       const count = state.contactsPerCustomerDay.get(`${record.customer_id}:${dayKey}`) ?? 0;
-      return count < MAX_RETRIES_PER_CUSTOMER_DAY
+      return count < max
         ? { passed: true }
         : {
             passed: false,
@@ -128,86 +123,94 @@ export const RULES: Rule[] = [
   },
   {
     id: "A3",
-    description: "Max total interventions in batch = 80%",
+    description: "Max total interventions in batch (% of records)",
     applies: () => true,
-    check: ({ state }) =>
-      state.interventionCount < Math.floor(state.totalRecords * MAX_INTERVENTION_RATIO)
+    check: ({ state }) => {
+      const cap = Math.floor((state.totalRecords * state.config.maxInterventionRatioPct) / 100);
+      return state.interventionCount < cap
         ? { passed: true }
         : {
             passed: false,
-            block_reason: "Batch intervention cap (80%) reached",
+            block_reason: `Batch intervention cap (${state.config.maxInterventionRatioPct}%) reached`,
             action_taken: "PAUSE",
-          },
+          };
+    },
   },
   {
     id: "B1",
-    description: "No interventions 21:00 - 08:00 IST",
+    description: "No interventions during IST quiet hours",
     applies: () => true,
-    check: ({ istHour }) =>
-      istHour >= QUIET_END_HOUR && istHour < QUIET_START_HOUR
+    check: ({ state, istHour }) => {
+      const start = state.config.quietStartHourIst;
+      const end = state.config.quietEndHourIst;
+      return istHour >= end && istHour < start
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Current IST hour ${istHour} is inside quiet window (${QUIET_END_HOUR}:00-${QUIET_START_HOUR}:00)`,
+            block_reason: `Current IST hour ${istHour} is inside quiet window (${end}:00-${start}:00)`,
             action_taken: "QUEUE",
-          },
+          };
+    },
   },
   {
     id: "B2",
-    description: "Min 4 hours between retries to same customer",
+    description: "Minimum hours between retries to same customer",
     applies: () => true,
     check: ({ record, state }) => {
+      const minHours = state.config.cooldownHours;
       const last = state.lastContactAt.get(record.customer_id);
       if (!last) return { passed: true };
       const hoursSince = (state.now - last) / 3600000;
-      return hoursSince >= COOLDOWN_HOURS
+      return hoursSince >= minHours
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Cooling period active (${hoursSince.toFixed(1)}h since last contact, min ${COOLDOWN_HOURS}h)`,
+            block_reason: `Cooling period active (${hoursSince.toFixed(1)}h since last contact, min ${minHours}h)`,
             action_taken: "RESCHEDULE",
           };
     },
   },
   {
     id: "B3",
-    description: "Checkout nudge window = max 2 hours for WhatsApp/SMS",
+    description: "Checkout nudge window for WhatsApp/SMS",
     applies: ({ record }) => record.type === "checkout_abandonment",
-    check: ({ channel, record }) => {
+    check: ({ channel, record, state }) => {
       if (channel !== "whatsapp" && channel !== "sms") return { passed: true };
+      const windowH = state.config.checkoutNudgeWindowHours;
       const ageHours = record.recovery_window_hours ?? 0;
-      return ageHours <= CHECKOUT_NUDGE_WINDOW_HOURS
+      return ageHours <= windowH
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Outside ${CHECKOUT_NUDGE_WINDOW_HOURS}h nudge window (${ageHours}h since abandonment)`,
+            block_reason: `Outside ${windowH}h nudge window (${ageHours}h since abandonment)`,
             action_taken: "SKIP",
           };
     },
   },
   {
     id: "B4",
-    description: "Subscription retry window = max 7 days",
+    description: "Subscription retry window in days",
     applies: ({ record }) => record.type === "subscription_failure",
     check: ({ record, strategy, state }) => {
       if (strategy.action !== "MANDATE_RETRY") return { passed: true };
+      const windowDays = state.config.subscriptionRetryWindowDays;
       const ageHours = (state.now - new Date(record.failure_timestamp).getTime()) / 3600000;
-      return ageHours <= SUBSCRIPTION_RETRY_WINDOW_HOURS
+      return ageHours <= windowDays * 24
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Beyond ${SUBSCRIPTION_RETRY_WINDOW_HOURS / 24}-day retry window (${Math.round(ageHours / 24)} days)`,
+            block_reason: `Beyond ${windowDays}-day retry window (${Math.round(ageHours / 24)} days)`,
             action_taken: "ESCALATE",
           };
     },
   },
   {
     id: "C1",
-    description: "Max 1 SMS per customer per day",
+    description: "Max SMS per customer per day",
     applies: ({ channel }) => channel === "sms",
     check: ({ record, state, dayKey }) => {
       const key = `${record.customer_id}:${dayKey}`;
-      return (state.smsToday.get(key) ?? 0) < MAX_SMS_PER_DAY
+      return (state.smsToday.get(key) ?? 0) < state.config.maxSmsPerDay
         ? { passed: true }
         : {
             passed: false,
@@ -244,67 +247,67 @@ export const RULES: Rule[] = [
   },
   {
     id: "C4",
-    description: "Amount > ₹50,000 requires manual approval",
+    description: "Amount above approval threshold requires manual approval",
     applies: () => true,
-    check: ({ record }) =>
-      record.amount <= APPROVAL_THRESHOLD_PAISE
+    check: ({ record, state }) =>
+      record.amount <= state.config.approvalThresholdPaise
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `₹${(record.amount / 100).toLocaleString("en-IN")} exceeds ₹50,000 approval threshold`,
+            block_reason: `${formatInrShort(record.amount)} exceeds ${formatInrShort(state.config.approvalThresholdPaise)} approval threshold`,
             action_taken: "ESCALATE",
           },
   },
   {
     id: "D1",
-    description: "Max single intervention amount = ₹50,000",
+    description: "Max single intervention amount",
     applies: () => true,
-    check: ({ record }) =>
-      record.amount <= APPROVAL_THRESHOLD_PAISE
+    check: ({ record, state }) =>
+      record.amount <= state.config.approvalThresholdPaise
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Single intervention amount cap of ₹50,000 exceeded`,
+            block_reason: `Single intervention amount cap of ${formatInrShort(state.config.approvalThresholdPaise)} exceeded`,
             action_taken: "ESCALATE",
           },
   },
   {
     id: "D2",
-    description: "Max daily recovery attempt volume = ₹5,00,000",
+    description: "Max daily recovery attempt volume",
     applies: () => true,
     check: ({ record, state }) =>
-      state.attemptedVolumePaise + record.amount <= DAILY_VOLUME_CAP_PAISE
+      state.attemptedVolumePaise + record.amount <= state.config.dailyVolumeCapPaise
         ? { passed: true }
         : {
             passed: false,
-            block_reason: "Daily recovery volume cap of ₹5,00,000 reached",
+            block_reason: `Daily recovery volume cap of ${formatInrShort(state.config.dailyVolumeCapPaise)} reached`,
             action_taken: "PAUSE",
           },
   },
   {
     id: "D3",
-    description: "Auto-skip if recovery cost > 30% of amount",
+    description: "Auto-skip if recovery cost exceeds % of amount",
     applies: () => true,
-    check: ({ record, channel }) => {
+    check: ({ record, channel, state }) => {
       if (!channel) return { passed: true };
-      const cost =
-        CHANNEL_COSTS[channel] + CHANNEL_COSTS.api_call;
-      return cost <= record.amount * ROI_COST_RATIO
+      const cost = CHANNEL_COSTS[channel] + CHANNEL_COSTS.api_call;
+      const ratio = state.config.roiCostRatioPct / 100;
+      return cost <= record.amount * ratio
         ? { passed: true }
         : {
             passed: false,
-            block_reason: `Recovery cost ₹${(cost / 100).toFixed(2)} > 30% of ₹${record.amount / 100}`,
+            block_reason: `Recovery cost ₹${(cost / 100).toFixed(2)} > ${state.config.roiCostRatioPct}% of ₹${record.amount / 100}`,
             action_taken: "SKIP",
           };
     },
   },
   {
     id: "F1",
-    description: "Max 1 voice call per customer per week",
+    description: "Max voice calls per customer per week",
     applies: ({ channel }) => channel === "voice",
     check: ({ record, state, weekKey }) => {
       const key = `${record.customer_id}:${weekKey}`;
-      return (state.voiceThisWeek.get(key) ?? 0) < MAX_VOICE_PER_WEEK
+      return (state.voiceThisWeek.get(key) ?? 0) < state.config.maxVoicePerWeek
         ? { passed: true }
         : {
             passed: false,
@@ -328,7 +331,7 @@ export const RULES: Rule[] = [
   },
   {
     id: "F3",
-    description: "Max 3 voice attempts before switching to text",
+    description: "Max voice attempts before switching to text",
     applies: ({ channel }) => channel === "voice",
     check: ({ record, state }) =>
       (state.voiceAttempts.get(record.customer_id) ?? 0) < MAX_VOICE_ATTEMPTS_BEFORE_TEXT
@@ -354,14 +357,14 @@ export const RULES: Rule[] = [
   },
   {
     id: "G1",
-    description: "Max 2 promise renewals per record",
+    description: "Max promise renewals per record",
     applies: ({ record }) => record.type === "overdue_invoice",
     check: ({ record, state }) =>
-      (state.promiseRenewals.get(record.record_id) ?? 0) <= 2
+      (state.promiseRenewals.get(record.record_id) ?? 0) <= MAX_PROMISE_RENEWALS
         ? { passed: true }
         : {
             passed: false,
-            block_reason: "Promise renewal limit (2) exceeded",
+            block_reason: `Promise renewal limit (${MAX_PROMISE_RENEWALS}) exceeded`,
             action_taken: "ESCALATE",
           },
   },

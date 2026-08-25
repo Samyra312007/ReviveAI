@@ -1,4 +1,4 @@
-import { openDb, initSchema, DB_PATH } from "@/lib/db";
+import { openDb, initSchema, DB_PATH, upsertCouncilOverride } from "@/lib/db";
 import fs from "node:fs";
 
 export interface AuditRow {
@@ -159,5 +159,89 @@ export function getReportJson(reportPath?: string): unknown {
     return JSON.parse(fs.readFileSync(resolved, "utf-8"));
   } catch {
     return null;
+  }
+}
+
+export interface CouncilProposal {
+  proposal_id: string;
+  rule_id: string;
+  parameter: string;
+  current_value: number;
+  proposed_value: number;
+  current_display: string;
+  proposed_display: string;
+  rationale: string;
+  blocked_count: number;
+  blocked_recoverable_paise: number;
+  avg_recovery_probability: number;
+  status: string;
+  created_at: string;
+  decided_at: string | null;
+}
+
+export interface CouncilOverride {
+  parameter: string;
+  value: number;
+  rule_source: string;
+  proposal_id: string;
+  approved_at: string;
+}
+
+export function getCouncilState(): {
+  proposals: CouncilProposal[];
+  overrides: CouncilOverride[];
+} {
+  const db = getDb();
+  if (!db) return { proposals: [], overrides: [] };
+  try {
+    const proposals = db
+      .prepare(
+        `SELECT * FROM tuning_proposals
+         ORDER BY CASE status WHEN 'pending' THEN 0 ELSE 1 END, created_at DESC`,
+      )
+      .all() as CouncilProposal[];
+    const overrides = db
+      .prepare("SELECT * FROM council_overrides ORDER BY approved_at ASC")
+      .all() as CouncilOverride[];
+    return { proposals, overrides };
+  } finally {
+    db.close();
+  }
+}
+
+export function decideCouncilProposalInDb(
+  proposalId: string,
+  decision: "approved" | "rejected",
+): { ok: boolean; proposal?: CouncilProposal; error?: string } {
+  const db = getDb();
+  if (!db) return { ok: false, error: "No database" };
+  try {
+    const row = db
+      .prepare("SELECT * FROM tuning_proposals WHERE proposal_id = ?")
+      .get(proposalId) as CouncilProposal | undefined;
+    if (!row) return { ok: false, error: "Proposal not found" };
+    if (row.status !== "pending")
+      return { ok: false, error: `Proposal already ${row.status}` };
+
+    db.prepare(
+      "UPDATE tuning_proposals SET status = ?, decided_at = ? WHERE proposal_id = ?",
+    ).run(decision, new Date().toISOString(), proposalId);
+
+    if (decision === "approved") {
+      upsertCouncilOverride(db, {
+        parameter: row.parameter,
+        value: row.proposed_value,
+        rule_source: row.rule_id,
+        proposal_id: row.proposal_id,
+        approved_at: new Date().toISOString(),
+      });
+    }
+
+    return {
+      ok: true,
+      proposal: { ...row, status: decision, decided_at: new Date().toISOString() },
+    };
+  } finally {
+    db.close();
   }
 }

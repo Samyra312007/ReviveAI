@@ -3,6 +3,7 @@ import { Rng } from "@/lib/data/seed";
 import { detectRecord } from "@/lib/detection/engine";
 import { buildContext, createBatchState, BatchState, toIstParts } from "./context";
 import { selectStrategy, StrategyAction } from "./strategy";
+import { GuardrailConfig } from "@/lib/guardrails/config";
 import { evaluateGuardrails } from "@/lib/guardrails/engine";
 import { GuardrailAuditEntry } from "@/lib/guardrails/engine";
 import { RazorpayExecutor } from "@/lib/razorpay/client";
@@ -36,6 +37,7 @@ export interface RunBatchOptions {
   executor?: RazorpayExecutor;
   enableVoice?: boolean;
   enablePromises?: boolean;
+  guardrailConfig?: Partial<GuardrailConfig>;
 }
 
 export interface RunBatchResult {
@@ -109,6 +111,7 @@ export async function processRecord(
 
   let guardrailResult = evaluateGuardrails(record, strategy, state);
   let pauses = 0;
+  const resolvedBlockRuleIds = new Set<string>();
 
   while (
     !guardrailResult.outcome.passed &&
@@ -117,6 +120,7 @@ export async function processRecord(
     pauses < 7
   ) {
     pauses++;
+    resolvedBlockRuleIds.add(guardrailResult.outcome.block!.rule_id);
     if (guardrailResult.outcome.block?.rule_id === "B1") {
       state.now = nextIstWindowStart(state.now);
     } else {
@@ -179,6 +183,8 @@ export async function processRecord(
       detection,
       strategy,
       guardrailChecks: guardrailOutcome.checks,
+      resolvedGuardrailBlocks:
+        resolvedBlockRuleIds.size > 0 ? [...resolvedBlockRuleIds] : undefined,
       apiCall: execution.api_call,
       outcome,
       amountRecovered: intervened ? record.ground_truth.recoverable_amount : 0,
@@ -200,7 +206,7 @@ export async function runBatch(
     options.executor ??
     new RazorpayExecutor(process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
   const rng = new Rng(seed);
-  const state = createBatchState(records.length, now);
+  const state = createBatchState(records.length, now, options.guardrailConfig);
 
   const decisions: RecordDecision[] = [];
   const allGuardrailAudit: GuardrailAuditEntry[] = [];

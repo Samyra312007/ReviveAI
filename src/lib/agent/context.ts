@@ -1,4 +1,5 @@
 import { SyntheticRecord } from "@/lib/data/schema";
+import { DEFAULT_GUARDRAIL_CONFIG, GuardrailConfig, resolveGuardrailConfig } from "@/lib/guardrails/config";
 
 export interface CustomerContext {
   customerValue: "high" | "mid" | "low";
@@ -10,6 +11,7 @@ export interface CustomerContext {
 
 export interface BatchState {
   now: number;
+  config: GuardrailConfig;
   retriesPerRecord: Map<string, number>;
   contactsPerCustomerDay: Map<string, number>;
   lastContactAt: Map<string, number>;
@@ -23,9 +25,14 @@ export interface BatchState {
   totalRecords: number;
 }
 
-export function createBatchState(totalRecords: number, now: number = Date.now()): BatchState {
+export function createBatchState(
+  totalRecords: number,
+  now: number = Date.now(),
+  guardrailConfig?: Partial<GuardrailConfig>,
+): BatchState {
   return {
     now,
+    config: resolveGuardrailConfig(guardrailConfig),
     retriesPerRecord: new Map(),
     contactsPerCustomerDay: new Map(),
     lastContactAt: new Map(),

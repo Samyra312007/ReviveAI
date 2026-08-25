@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-08-25T19:50:35.678Z",
+  "generated_at": "2026-08-25T20:46:14.017Z",
   "batch_id": "batch_2026-08-25_seed42",
   "seed": 42,
   "hero": {
-    "recovered_display": "₹5,02,369",
+    "recovered_display": "₹4,65,885",
     "at_risk_display": "₹12,57,691",
-    "recovery_rate_pct": 39.9,
-    "roi_display": "14012.1x"
+    "recovery_rate_pct": 37,
+    "roi_display": "13085.7x"
   },
   "recovery": {
     "at_risk_paise": 125769100,
-    "recovered_paise": 50236900,
-    "recovery_rate": 0.399,
-    "avg_time_to_recovery_hours": 15.8,
+    "recovered_paise": 46588500,
+    "recovery_rate": 0.37,
+    "avg_time_to_recovery_hours": 15.4,
     "recoverable_records": 122,
-    "recovered_records": 63
+    "recovered_records": 61
   },
   "recovery_by_category": [
     {
@@ -29,11 +29,11 @@
     {
       "category": "overdue_invoice",
       "at_risk_paise": 44642000,
-      "recovered_paise": 19279200,
-      "recovery_rate": 0.432,
-      "avg_time_to_recovery_hours": 19.8,
+      "recovered_paise": 15452600,
+      "recovery_rate": 0.346,
+      "avg_time_to_recovery_hours": 19.1,
       "recoverable_records": 20,
-      "recovered_records": 10
+      "recovered_records": 7
     },
     {
       "category": "checkout_abandonment",
@@ -47,11 +47,11 @@
     {
       "category": "subscription_failure",
       "at_risk_paise": 6855200,
-      "recovered_paise": 2462800,
-      "recovery_rate": 0.359,
-      "avg_time_to_recovery_hours": 17.7,
+      "recovered_paise": 2641000,
+      "recovery_rate": 0.385,
+      "avg_time_to_recovery_hours": 17.1,
       "recoverable_records": 30,
-      "recovered_records": 15
+      "recovered_records": 16
     },
     {
       "category": "control",
@@ -66,13 +66,13 @@
   "accuracy": {
     "overall": {
       "category": "overall",
-      "tp": 120,
+      "tp": 121,
       "fp": 1,
       "tn": 27,
-      "fn": 2,
+      "fn": 1,
       "precision": 0.992,
-      "recall": 0.984,
-      "f1": 0.988
+      "recall": 0.992,
+      "f1": 0.992
     },
     "by_category": [
       {
@@ -97,13 +97,13 @@
       },
       {
         "category": "subscription_failure",
-        "tp": 29,
+        "tp": 30,
         "fp": 0,
         "tn": 0,
-        "fn": 1,
+        "fn": 0,
         "precision": 1,
-        "recall": 0.967,
-        "f1": 0.983
+        "recall": 1,
+        "f1": 1
       },
       {
         "category": "overdue_invoice",
@@ -129,11 +129,9 @@
     "false_positive_rate": 0.036
   },
   "guardrails": {
-    "total_blocks": 1,
-    "block_rate": 0.7,
-    "blocks_by_rule": {
-      "B4": 1
-    }
+    "total_blocks": 0,
+    "block_rate": 0,
+    "blocks_by_rule": {}
   },
   "exceptions": [
     {
@@ -177,12 +175,6 @@
       "type": "payment_failure",
       "reason": "High confidence (0.77) — routing to agent core",
       "outcome": "escalated"
-    },
-    {
-      "record_id": "rec_094",
-      "type": "subscription_failure",
-      "reason": "Beyond 7-day retry window (7 days)",
-      "outcome": "blocked"
     },
     {
       "record_id": "rec_107",
@@ -229,17 +221,17 @@
   ],
   "operational": {
     "total_records": 150,
-    "records_intervened": 108,
+    "records_intervened": 109,
     "records_skipped": 28,
     "records_escalated": 13,
-    "records_blocked": 1,
-    "api_calls_made": 108,
+    "records_blocked": 0,
+    "api_calls_made": 109,
     "api_errors": 0,
-    "processing_time_ms": 5
+    "processing_time_ms": 7
   },
   "cost_benefit": {
-    "intervention_cost_paise": 3585,
-    "net_recovered_paise": 50233315,
-    "roi_multiple": 14012.1
+    "intervention_cost_paise": 3560,
+    "net_recovered_paise": 46584940,
+    "roi_multiple": 13085.7
   }
 }

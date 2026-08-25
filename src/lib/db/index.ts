@@ -106,12 +106,38 @@ export function initSchema(db: Database.Database): void {
       simulated INTEGER NOT NULL DEFAULT 1
     );
 
+    CREATE TABLE IF NOT EXISTS tuning_proposals (
+      proposal_id TEXT PRIMARY KEY,
+      rule_id TEXT NOT NULL,
+      parameter TEXT NOT NULL,
+      current_value REAL NOT NULL,
+      proposed_value REAL NOT NULL,
+      current_display TEXT NOT NULL,
+      proposed_display TEXT NOT NULL,
+      rationale TEXT NOT NULL,
+      blocked_count INTEGER NOT NULL,
+      blocked_recoverable_paise INTEGER NOT NULL,
+      avg_recovery_probability REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL,
+      decided_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS council_overrides (
+      parameter TEXT PRIMARY KEY,
+      value REAL NOT NULL,
+      rule_source TEXT NOT NULL,
+      proposal_id TEXT NOT NULL,
+      approved_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_records_type ON records(type);
     CREATE INDEX IF NOT EXISTS idx_records_customer ON records(customer_id);
     CREATE INDEX IF NOT EXISTS idx_promises_record ON promises(record_id);
     CREATE INDEX IF NOT EXISTS idx_audit_record ON audit_log(record_id);
     CREATE INDEX IF NOT EXISTS idx_audit_outcome ON audit_log(outcome);
     CREATE INDEX IF NOT EXISTS idx_voice_record ON voice_notifications(record_id);
+    CREATE INDEX IF NOT EXISTS idx_proposals_status ON tuning_proposals(status);
   `);
   schemaInitialized = true;
 }
@@ -240,4 +266,86 @@ export function insertVoiceNotifications(
 
 export function clearVoiceNotifications(db: Database.Database): void {
   db.prepare("DELETE FROM voice_notifications").run();
+}
+
+export interface TuningProposalRow {
+  proposal_id: string;
+  rule_id: string;
+  parameter: string;
+  current_value: number;
+  proposed_value: number;
+  current_display: string;
+  proposed_display: string;
+  rationale: string;
+  blocked_count: number;
+  blocked_recoverable_paise: number;
+  avg_recovery_probability: number;
+  status: string;
+  created_at: string;
+  decided_at: string | null;
+}
+
+const INSERT_PROPOSAL = `
+    INSERT OR REPLACE INTO tuning_proposals (
+      proposal_id, rule_id, parameter, current_value, proposed_value,
+      current_display, proposed_display, rationale, blocked_count,
+      blocked_recoverable_paise, avg_recovery_probability,
+      status, created_at, decided_at
+    ) VALUES (
+      @proposal_id, @rule_id, @parameter, @current_value, @proposed_value,
+      @current_display, @proposed_display, @rationale, @blocked_count,
+      @blocked_recoverable_paise, @avg_recovery_probability,
+      'pending', @created_at, NULL
+    )
+  `;
+
+export function insertTuningProposals(
+  db: Database.Database,
+  proposals: TuningProposalInsert[],
+): void {
+  const stmt = db.prepare(INSERT_PROPOSAL);
+  const insertAll = db.transaction((all: TuningProposalInsert[]) => {
+    for (const p of all) stmt.run({ ...p, status: "pending", decided_at: null });
+  });
+  insertAll(proposals);
+}
+
+export interface TuningProposalInsert {
+  proposal_id: string;
+  rule_id: string;
+  parameter: string;
+  current_value: number;
+  proposed_value: number;
+  current_display: string;
+  proposed_display: string;
+  rationale: string;
+  blocked_count: number;
+  blocked_recoverable_paise: number;
+  avg_recovery_probability: number;
+  created_at: string;
+}
+
+export function upsertCouncilOverride(
+  db: Database.Database,
+  override: {
+    parameter: string;
+    value: number;
+    rule_source: string;
+    proposal_id: string;
+    approved_at: string;
+  },
+): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO council_overrides (
+      parameter, value, rule_source, proposal_id, approved_at
+    ) VALUES (@parameter, @value, @rule_source, @proposal_id, @approved_at)
+  `).run(override);
+}
+
+export function getCouncilOverrides(
+  db: Database.Database,
+): { parameter: string; value: number; rule_source: string; proposal_id: string }[] {
+  return db
+    .prepare("SELECT parameter, value, rule_source, proposal_id FROM council_overrides")
+    .all() as never;
 }
