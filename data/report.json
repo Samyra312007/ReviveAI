@@ -1,0 +1,275 @@
+{
+  "generated_at": "2026-08-25T17:28:46.175Z",
+  "batch_id": "batch_2026-08-25_seed42",
+  "seed": 42,
+  "hero": {
+    "recovered_display": "₹5,36,684",
+    "at_risk_display": "₹12,57,691",
+    "recovery_rate_pct": 42.7,
+    "roi_display": "15398.8x"
+  },
+  "recovery": {
+    "at_risk_paise": 125769100,
+    "recovered_paise": 53668400,
+    "recovery_rate": 0.427,
+    "avg_time_to_recovery_hours": 15.4,
+    "recoverable_records": 122,
+    "recovered_records": 68
+  },
+  "recovery_by_category": [
+    {
+      "category": "payment_failure",
+      "at_risk_paise": 47121300,
+      "recovered_paise": 22110000,
+      "recovery_rate": 0.469,
+      "avg_time_to_recovery_hours": 16.4,
+      "recoverable_records": 46,
+      "recovered_records": 29
+    },
+    {
+      "category": "overdue_invoice",
+      "at_risk_paise": 44642000,
+      "recovered_paise": 16219300,
+      "recovery_rate": 0.363,
+      "avg_time_to_recovery_hours": 13.5,
+      "recoverable_records": 20,
+      "recovered_records": 10
+    },
+    {
+      "category": "checkout_abandonment",
+      "at_risk_paise": 27150600,
+      "recovered_paise": 12497900,
+      "recovery_rate": 0.46,
+      "avg_time_to_recovery_hours": 9.9,
+      "recoverable_records": 26,
+      "recovered_records": 15
+    },
+    {
+      "category": "subscription_failure",
+      "at_risk_paise": 6855200,
+      "recovered_paise": 2841200,
+      "recovery_rate": 0.414,
+      "avg_time_to_recovery_hours": 20.4,
+      "recoverable_records": 30,
+      "recovered_records": 14
+    },
+    {
+      "category": "control",
+      "at_risk_paise": 0,
+      "recovered_paise": 0,
+      "recovery_rate": 0,
+      "avg_time_to_recovery_hours": null,
+      "recoverable_records": 0,
+      "recovered_records": 0
+    }
+  ],
+  "accuracy": {
+    "overall": {
+      "category": "overall",
+      "tp": 114,
+      "fp": 1,
+      "tn": 27,
+      "fn": 8,
+      "precision": 0.991,
+      "recall": 0.934,
+      "f1": 0.962
+    },
+    "by_category": [
+      {
+        "category": "payment_failure",
+        "tp": 41,
+        "fp": 0,
+        "tn": 4,
+        "fn": 5,
+        "precision": 1,
+        "recall": 0.891,
+        "f1": 0.942
+      },
+      {
+        "category": "checkout_abandonment",
+        "tp": 26,
+        "fp": 1,
+        "tn": 3,
+        "fn": 0,
+        "precision": 0.963,
+        "recall": 1,
+        "f1": 0.981
+      },
+      {
+        "category": "subscription_failure",
+        "tp": 27,
+        "fp": 0,
+        "tn": 0,
+        "fn": 3,
+        "precision": 1,
+        "recall": 0.9,
+        "f1": 0.947
+      },
+      {
+        "category": "overdue_invoice",
+        "tp": 20,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      {
+        "category": "control",
+        "tp": 0,
+        "fp": 0,
+        "tn": 20,
+        "fn": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    ],
+    "false_positive_rate": 0.036
+  },
+  "guardrails": {
+    "total_blocks": 3,
+    "block_rate": 2,
+    "blocks_by_rule": {
+      "B4": 3
+    }
+  },
+  "exceptions": [
+    {
+      "record_id": "rec_008",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (80h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_016",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (79h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_027",
+      "type": "payment_failure",
+      "reason": "Amount ₹78 too small for cost-effective recovery",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_028",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (75h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_041",
+      "type": "payment_failure",
+      "reason": "High confidence (0.77) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_042",
+      "type": "payment_failure",
+      "reason": "High confidence (0.77) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_043",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (78h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_044",
+      "type": "payment_failure",
+      "reason": "High confidence (0.77) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_045",
+      "type": "payment_failure",
+      "reason": "High confidence (0.77) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_046",
+      "type": "payment_failure",
+      "reason": "High confidence (0.77) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_081",
+      "type": "subscription_failure",
+      "reason": "Beyond 7-day retry window (7 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_082",
+      "type": "subscription_failure",
+      "reason": "Beyond 7-day retry window (8 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_094",
+      "type": "subscription_failure",
+      "reason": "Beyond 7-day retry window (8 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_107",
+      "type": "subscription_failure",
+      "reason": "High confidence (0.87) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_108",
+      "type": "subscription_failure",
+      "reason": "High confidence (0.87) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_109",
+      "type": "subscription_failure",
+      "reason": "High confidence (0.87) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_110",
+      "type": "subscription_failure",
+      "reason": "High confidence (0.87) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_128",
+      "type": "overdue_invoice",
+      "reason": "High confidence (0.9) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_129",
+      "type": "overdue_invoice",
+      "reason": "High confidence (0.9) — routing to agent core",
+      "outcome": "escalated"
+    },
+    {
+      "record_id": "rec_130",
+      "type": "overdue_invoice",
+      "reason": "High confidence (0.9) — routing to agent core",
+      "outcome": "escalated"
+    }
+  ],
+  "operational": {
+    "total_records": 150,
+    "records_intervened": 103,
+    "records_skipped": 32,
+    "records_escalated": 12,
+    "records_blocked": 3,
+    "api_calls_made": 103,
+    "api_errors": 0,
+    "processing_time_ms": 8
+  },
+  "cost_benefit": {
+    "intervention_cost_paise": 3485,
+    "net_recovered_paise": 53664915,
+    "roi_multiple": 15398.8
+  }
+}

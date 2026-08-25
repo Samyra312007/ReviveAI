@@ -169,28 +169,28 @@ const PROFILES: Record<string, Record<string, SubcategoryProfile>> = {
   overdue_invoice: {
     "7_day_late": {
       failure_reason: "Invoice 7 days overdue",
-      amount_range: [5000, 60000],
+      amount_range: [2000, 25000],
       recovery_probability: [0.6, 0.8],
       recommended_intervention: "GENTLE_REMINDER",
       max_retries: 2,
     },
     "14_day_late": {
       failure_reason: "Invoice 14 days overdue",
-      amount_range: [8000, 90000],
+      amount_range: [3000, 35000],
       recovery_probability: [0.4, 0.6],
       recommended_intervention: "FIRM_NOTICE",
       max_retries: 2,
     },
     "30_day_late": {
       failure_reason: "Invoice 30 days overdue",
-      amount_range: [10000, 150000],
+      amount_range: [5000, 45000],
       recovery_probability: [0.25, 0.45],
       recommended_intervention: "PAYMENT_PLAN_OFFER",
       max_retries: 1,
     },
     "60_day_plus_late": {
       failure_reason: "Invoice 60+ days overdue",
-      amount_range: [25000, 200000],
+      amount_range: [8000, 48000],
       recovery_probability: [0.05, 0.2],
       recommended_intervention: "ESCALATE_LEGAL",
       max_retries: 0,
@@ -200,6 +200,38 @@ const PROFILES: Record<string, Record<string, SubcategoryProfile>> = {
 
 function roundToRupees(paise: number): number {
   return Math.round(paise / 100) * 100;
+}
+
+const INVOICE_BUCKET_DAYS: Record<string, number> = {
+  "7_day_late": 7,
+  "14_day_late": 14,
+  "30_day_late": 30,
+  "60_day_plus_late": 60,
+};
+
+function generateAgeHours(
+  rng: Rng,
+  type: string,
+  subcategory: string,
+): number {
+  const bias = Math.pow(rng.float(), 1.5);
+  switch (type) {
+    case "payment_failure":
+      return bias * 72;
+    case "checkout_abandonment":
+      return bias * 120;
+    case "subscription_failure":
+      return bias * 168;
+    case "control":
+      return Math.pow(rng.float(), 1.8) * 30 * 24;
+    case "overdue_invoice": {
+      const bucketDays = INVOICE_BUCKET_DAYS[subcategory] ?? 7;
+      const jitterDays = rng.int(0, 2);
+      return (bucketDays + jitterDays) * 24;
+    }
+    default:
+      return bias * 24;
+  }
 }
 
 export interface GenerationResult {
@@ -259,9 +291,8 @@ export function generateBatch(seed: number = DEFAULT_SEED): GenerationResult {
         const amountRs = Math.round(rng.float() * (maxRs - minRs) + minRs);
         const amount = roundToRupees(amountRs * 100);
 
-        // Timestamps span last 30 days, weighted toward recent
-        const daysAgoBias = Math.pow(rng.float(), 1.8);
-        const ageHours = daysAgoBias * 30 * 24;
+        // Timestamps aligned to each type's realistic recovery horizon
+        const ageHours = generateAgeHours(rng, type, subcategory);
         // Round to nearest second for deterministic output across runs
         const timestamp = new Date(
           Math.round((now - ageHours * 3600 * 1000) / 1000) * 1000,

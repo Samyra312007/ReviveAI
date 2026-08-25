@@ -50,13 +50,25 @@ describe("generateBatch", () => {
     }
   });
 
-  it("timestamps span last 30 days", () => {
+  it("timestamps align with each type's recovery horizon", () => {
     const now = Date.now();
-    const thirtyDays = 30 * 24 * 3600 * 1000;
+    const hour = 3600 * 1000;
+    const windows: Record<string, [number, number]> = {
+      payment_failure: [0, 72],
+      checkout_abandonment: [0, 120],
+      subscription_failure: [0, 168],
+      control: [0, 30 * 24],
+    };
     for (const r of records) {
-      const ts = new Date(r.failure_timestamp).getTime();
-      expect(ts).toBeLessThanOrEqual(now);
-      expect(now - ts).toBeLessThanOrEqual(thirtyDays + 1000);
+      const ageH = (now - new Date(r.failure_timestamp).getTime()) / hour;
+      if (r.type === "overdue_invoice") {
+        expect(ageH).toBeGreaterThanOrEqual(7 * 24 - 0.5);
+        expect(ageH).toBeLessThanOrEqual(63 * 24 + 0.5);
+      } else {
+        const [min, max] = windows[r.type];
+        expect(ageH, `${r.record_id} age=${ageH.toFixed(1)}h`).toBeGreaterThanOrEqual(min);
+        expect(ageH).toBeLessThanOrEqual(max + 1);
+      }
     }
   });
 
