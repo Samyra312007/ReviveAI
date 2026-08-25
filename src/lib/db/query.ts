@@ -122,6 +122,36 @@ export function getPromiseRows(): PromiseRow[] {
   }
 }
 
+export interface VoiceRow {
+  notification_id: string;
+  record_id: string;
+  customer_id: string;
+  template_id: string;
+  language: string;
+  personalized_text: string;
+  tone: string;
+  channel: string;
+  delivery_status: string;
+  delivered_at: string | null;
+  audio_duration_seconds: number;
+  customer_responded: number;
+  response_type: string | null;
+  response_timestamp: string | null;
+  created_at: string;
+}
+
+export function getVoiceRows(): VoiceRow[] {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    return db
+      .prepare("SELECT * FROM voice_notifications ORDER BY created_at ASC")
+      .all() as VoiceRow[];
+  } finally {
+    db.close();
+  }
+}
+
 export function getReportJson(): unknown {
   const reportPath = `${process.cwd()}/data/report.json`;
   if (!fs.existsSync(reportPath)) return null;

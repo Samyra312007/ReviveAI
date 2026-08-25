@@ -1,11 +1,21 @@
-import { SyntheticRecord } from "@/lib/data/schema";
+import { SyntheticRecord, VoiceNotification, PromiseRecord } from "@/lib/data/schema";
 import { Rng } from "@/lib/data/seed";
 import { detectRecord } from "@/lib/detection/engine";
-import { buildContext, createBatchState, BatchState } from "./context";
+import { buildContext, createBatchState, BatchState, toIstParts } from "./context";
 import { selectStrategy, StrategyAction } from "./strategy";
 import { evaluateGuardrails } from "@/lib/guardrails/engine";
 import { GuardrailAuditEntry } from "@/lib/guardrails/engine";
 import { RazorpayExecutor } from "@/lib/razorpay/client";
+import {
+  selectVoiceStrategy,
+  buildVoiceNotification,
+  isWithinVoiceWindow,
+} from "@/lib/voice/generator";
+import { deliverVoice } from "@/lib/voice/delivery";
+import {
+  processPromises,
+  PromiseEvent,
+} from "@/lib/promise/tracker";
 import {
   RecordDecision,
   AuditOutcome,
@@ -24,12 +34,17 @@ export interface RunBatchOptions {
   seed?: number;
   now?: number;
   executor?: RazorpayExecutor;
+  enableVoice?: boolean;
+  enablePromises?: boolean;
 }
 
 export interface RunBatchResult {
   decisions: RecordDecision[];
   auditEntries: AuditLogEntry[];
   guardrailAudit: GuardrailAuditEntry[];
+  voiceNotifications: VoiceNotification[];
+  promiseUpdates: PromiseRecord[];
+  promiseEvents: PromiseEvent[];
   state: BatchState;
   processingTimeMs: number;
   report: ReturnType<typeof buildReport>;
@@ -41,6 +56,14 @@ function nextIstWindowStart(now: number): number {
   const shifted = now + IST_OFFSET_MS;
   const dayStart = Math.floor(shifted / 86400000) * 86400000;
   let target = dayStart + 8 * 3600 * 1000;
+  if (target <= shifted) target += 86400000;
+  return target - IST_OFFSET_MS;
+}
+
+function nextVoiceWindowStart(now: number): number {
+  const shifted = now + IST_OFFSET_MS;
+  const dayStart = Math.floor(shifted / 86400000) * 86400000;
+  let target = dayStart + 9 * 3600 * 1000;
   if (target <= shifted) target += 86400000;
   return target - IST_OFFSET_MS;
 }
@@ -181,6 +204,10 @@ export async function runBatch(
 
   const decisions: RecordDecision[] = [];
   const allGuardrailAudit: GuardrailAuditEntry[] = [];
+  const voiceNotifications: VoiceNotification[] = [];
+
+  const enableVoice = options.enableVoice ?? true;
+  let vnNum = 0;
 
   for (const record of records) {
     const { decision, guardrailAudit } = await processRecord(
@@ -191,6 +218,47 @@ export async function runBatch(
     );
     decisions.push(decision);
     allGuardrailAudit.push(...guardrailAudit);
+
+    if (
+      enableVoice &&
+      (decision.outcome === "recovered" || decision.outcome === "failed") &&
+      decision.strategy
+    ) {
+      const voiceStrategy = selectVoiceStrategy(record, decision.strategy);
+      if (voiceStrategy.action !== "NO_VOICE" && voiceStrategy.action !== "SKIP_VOICE") {
+        const voiceNow = isWithinVoiceWindow(state.now)
+          ? state.now
+          : nextVoiceWindowStart(state.now);
+        const weekKeyVoice = toIstParts(voiceNow).weekKey;
+        const voiceThisWeek =
+          state.voiceThisWeek.get(`${record.customer_id}:${weekKeyVoice}`) ?? 0;
+        if (voiceThisWeek < 1) {
+          state.voiceThisWeek.set(`${record.customer_id}:${weekKeyVoice}`, 1);
+          const notification = buildVoiceNotification(
+            () => rng.float(),
+            ++vnNum,
+            record,
+            voiceStrategy,
+            voiceNow,
+          );
+          const { notification: delivered } = deliverVoice(
+            () => rng.float(),
+            notification,
+            voiceNow,
+          );
+          voiceNotifications.push(delivered);
+        }
+      }
+    }
+  }
+
+  const enablePromises = options.enablePromises ?? true;
+  let promiseUpdates: PromiseRecord[] = [];
+  let promiseEvents: PromiseEvent[] = [];
+  if (enablePromises) {
+    const promiseResult = processPromises(records, now, () => rng.float());
+    promiseUpdates = promiseResult.updatedPromises;
+    promiseEvents = promiseResult.events;
   }
 
   const processingTimeMs = Date.now() - startedAt;
@@ -200,6 +268,9 @@ export async function runBatch(
     decisions,
     auditEntries: decisions.map(toAuditEntry),
     guardrailAudit: allGuardrailAudit,
+    voiceNotifications,
+    promiseUpdates,
+    promiseEvents,
     state,
     processingTimeMs,
     report,

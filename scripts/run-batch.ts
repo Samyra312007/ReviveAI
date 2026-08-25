@@ -1,8 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { openDb, initSchema, rowToRecord } from "../src/lib/db";
+import { openDb, initSchema, insertPromises, rowToRecord } from "../src/lib/db";
 import { runBatch } from "../src/lib/agent/core";
 import { SqliteAuditWriter } from "../src/lib/audit/logger";
+import {
+  insertVoiceNotifications,
+  clearVoiceNotifications,
+} from "../src/lib/db";
 
 interface RecordRow {
   [key: string]: unknown;
@@ -27,13 +31,37 @@ function main() {
     rowToRecord({ ...row, voice_opt_in: row.voice_opt_in === 1 } as never),
   );
 
+  const promiseRows = db
+    .prepare("SELECT * FROM promises")
+    .all() as {
+    [key: string]: unknown;
+    record_id: string;
+    reminders_sent: string;
+  }[];
+  const promisesByRecord = new Map<string, unknown>();
+  for (const p of promiseRows) {
+    promisesByRecord.set(p.record_id, {
+      ...p,
+      reminders_sent: JSON.parse(p.reminders_sent),
+    });
+  }
+  for (const r of records) {
+    const history = promisesByRecord.get(r.record_id);
+    if (history) r.promise_history = [history] as never;
+  }
+
   console.log(`Running batch: ${records.length} records (seed=${seed})...\n`);
   const start = Date.now();
 
   runBatch(records, { seed })
     .then((result) => {
+      db.prepare("DELETE FROM audit_log").run();
       const writer = new SqliteAuditWriter(db);
       writer.write(result.auditEntries);
+
+      clearVoiceNotifications(db);
+      insertVoiceNotifications(db, result.voiceNotifications);
+      insertPromises(db, result.promiseUpdates);
 
       const reportPath = path.join(process.cwd(), "data", "report.json");
       fs.mkdirSync(path.dirname(reportPath), { recursive: true });
@@ -66,6 +94,8 @@ function main() {
       );
       console.log(`  wall time: ${Date.now() - start}ms`);
       console.log(`\nAudit entries written: ${result.auditEntries.length}`);
+      console.log(`Voice notifications sent: ${result.voiceNotifications.length}`);
+      console.log(`Promise updates: ${result.promiseUpdates.length} (events: ${result.promiseEvents.length})`);
       console.log(`Report saved to data/report.json`);
       db.close();
     })

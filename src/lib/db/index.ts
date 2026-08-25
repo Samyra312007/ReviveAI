@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { SyntheticRecord, PromiseRecord } from "@/lib/data/schema";
+import { SyntheticRecord, PromiseRecord, VoiceNotification } from "@/lib/data/schema";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 export const DB_PATH = path.join(DATA_DIR, "synthetic.db");
@@ -82,11 +82,33 @@ export function initSchema(db: Database.Database): void {
       error TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS voice_notifications (
+      notification_id TEXT PRIMARY KEY,
+      record_id TEXT NOT NULL,
+      customer_id TEXT NOT NULL,
+      template_id TEXT NOT NULL,
+      language TEXT NOT NULL,
+      personalized_text TEXT NOT NULL,
+      tone TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      delivery_status TEXT NOT NULL,
+      delivered_at TEXT,
+      audio_file_path TEXT,
+      audio_duration_seconds REAL NOT NULL,
+      tts_engine TEXT NOT NULL,
+      customer_responded INTEGER NOT NULL DEFAULT 0,
+      response_type TEXT,
+      response_timestamp TEXT,
+      created_at TEXT NOT NULL,
+      simulated INTEGER NOT NULL DEFAULT 1
+    );
+
     CREATE INDEX IF NOT EXISTS idx_records_type ON records(type);
     CREATE INDEX IF NOT EXISTS idx_records_customer ON records(customer_id);
     CREATE INDEX IF NOT EXISTS idx_promises_record ON promises(record_id);
     CREATE INDEX IF NOT EXISTS idx_audit_record ON audit_log(record_id);
     CREATE INDEX IF NOT EXISTS idx_audit_outcome ON audit_log(outcome);
+    CREATE INDEX IF NOT EXISTS idx_voice_record ON voice_notifications(record_id);
   `);
 }
 
@@ -171,7 +193,47 @@ export function insertPromises(
 export function rowToRecord(row: RecordRow): SyntheticRecord {
   return {
     ...row,
-    voice_opt_in: row.voice_opt_in === 1,
+    voice_opt_in: row.voice_opt_in === 1 || (row.voice_opt_in as unknown) === true,
     ground_truth: JSON.parse(row.ground_truth as unknown as string),
   };
+}
+
+export function insertVoiceNotifications(
+  db: Database.Database,
+  notifications: VoiceNotification[],
+): void {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO voice_notifications (
+      notification_id, record_id, customer_id, template_id, language,
+      personalized_text, tone, channel, delivery_status, delivered_at,
+      audio_file_path, audio_duration_seconds, tts_engine,
+      customer_responded, response_type, response_timestamp,
+      created_at, simulated
+    ) VALUES (
+      @notification_id, @record_id, @customer_id, @template_id, @language,
+      @personalized_text, @tone, @channel, @delivery_status, @delivered_at,
+      @audio_file_path, @audio_duration_seconds, @tts_engine,
+      @customer_responded, @response_type, @response_timestamp,
+      @created_at, @simulated
+    )
+  `);
+
+  const insertAll = db.transaction((all: VoiceNotification[]) => {
+    for (const n of all) {
+      stmt.run({
+        ...n,
+        audio_file_path: n.audio_file_path ?? null,
+        response_type: n.response_type ?? null,
+        response_timestamp: n.response_timestamp ?? null,
+        customer_responded: n.customer_responded ? 1 : 0,
+        simulated: n.simulated ? 1 : 0,
+      });
+    }
+  });
+
+  insertAll(notifications);
+}
+
+export function clearVoiceNotifications(db: Database.Database): void {
+  db.prepare("DELETE FROM voice_notifications").run();
 }

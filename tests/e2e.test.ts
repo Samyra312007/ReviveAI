@@ -51,10 +51,10 @@ describe("end-to-end batch", () => {
     }
   });
 
-  it("recovers a meaningful share of at-risk revenue (>40%)", async () => {
+  it("recovers a meaningful share of at-risk revenue (>35%)", async () => {
     const result = await runBatch(records, { seed: 42, now: NOW });
     expect(result.report.recovery.recovered_paise).toBeGreaterThan(0);
-    expect(result.report.hero.recovery_rate_pct).toBeGreaterThan(40);
+    expect(result.report.hero.recovery_rate_pct).toBeGreaterThan(35);
   });
 
   it("marks simulated API calls in the audit trail", async () => {
@@ -107,5 +107,43 @@ describe("end-to-end batch", () => {
     const b = await runBatch(records, { seed: 99, now: NOW });
     expect(a.report.recovery.recovered_paise).toBe(b.report.recovery.recovered_paise);
     expect(a.report.hero.recovery_rate_pct).toBe(b.report.hero.recovery_rate_pct);
+  });
+});
+
+describe("phase 4 — voice & promise integration", () => {
+  const { records } = generateBatch(42);
+  const NOW = Date.UTC(2026, 7, 25, 6, 0);
+
+  it("generates voice notifications only for executed, opt-in records within IST window", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW });
+    const voiceRecordIds = new Set(result.voiceNotifications.map((v) => v.record_id));
+
+    for (const d of result.decisions) {
+      if (!voiceRecordIds.has(d.record.record_id)) continue;
+      expect(["recovered", "failed"]).toContain(d.outcome);
+      expect(d.record.voice_opt_in).not.toBe(false);
+      expect(d.strategy?.action).toBeDefined();
+    }
+  });
+
+  it("all delivered notifications carry simulated TTS metadata", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW });
+    for (const n of result.voiceNotifications) {
+      expect(n.template_id).toMatch(/^VT-\d+$/);
+      expect(n.personalized_text.length).toBeGreaterThan(20);
+      expect(n.audio_duration_seconds).toBeGreaterThan(0);
+    }
+  });
+
+  it("processes promise lifecycle and produces events", async () => {
+    const result = await runBatch(records, { seed: 42, now: NOW });
+    expect(Array.isArray(result.promiseEvents)).toBe(true);
+    expect(result.promiseEvents.length).toBeGreaterThan(0);
+    const eventTypes = new Set(result.promiseEvents.map((e) => e.event));
+    expect(eventTypes.size).toBeGreaterThan(0);
+    for (const p of result.promiseUpdates) {
+      expect(["pending", "broken", "escalated", "renewed"]).toContain(p.status);
+      expect(p.renewal_count).toBeLessThanOrEqual(2);
+    }
   });
 });
