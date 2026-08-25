@@ -16,6 +16,7 @@ import { computeVoiceMetrics } from "@/lib/voice/tracker";
 import { generateTuningProposals, BlockObservation } from "@/lib/council/analyzer";
 import { DEMO_BATCH_TOKEN, isTokenAuthorized } from "@/lib/auth";
 import { loadBatchDataset, attachPromiseHistories } from "@/lib/batch/data-loader";
+import { withExclusiveLock } from "@/lib/lock";
 
 export { DEMO_BATCH_TOKEN };
 
@@ -36,7 +37,7 @@ export function executeBatchRun(token: string | null): Promise<BatchRunResponse>
   if (inFlight) {
     return Promise.resolve({ status: 409, body: { error: "A batch run is already in progress" } });
   }
-  inFlight = performRun().finally(() => {
+  inFlight = withExclusiveLock(performRun).finally(() => {
     inFlight = null;
   });
   return inFlight;
@@ -151,9 +152,15 @@ async function performRun(): Promise<BatchRunResponse> {
       proposalsInserted = proposals.length;
     }
 
+    let reportWarning: string | undefined;
     const reportPath = path.join(process.cwd(), "data", "report.json");
-    fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-    fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
+    try {
+      fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+      fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
+    } catch {
+      reportWarning =
+        "report.json write failed — dashboard report may be stale until the next successful run";
+    }
 
     const voiceMetrics = computeVoiceMetrics(
       result.voiceNotifications,
@@ -166,6 +173,7 @@ async function performRun(): Promise<BatchRunResponse> {
         ok: true,
         processed: result.decisions.length,
         processing_time_ms: result.processingTimeMs,
+        report_warning: reportWarning,
         report: {
           ...result.report,
           council: {

@@ -54,7 +54,7 @@ const TWEAKS: Record<string, ParameterTweak> = {
   },
   D2: {
     parameter: "dailyVolumeCapPaise",
-    propose: (c) => c * 2,
+    propose: (c) => Math.min(c * 2, 200000000),
     describe: (v) => `₹${(v / 100).toLocaleString("en-IN")} daily volume cap`,
   },
   A1: {

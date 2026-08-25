@@ -345,10 +345,12 @@ export async function runBatch(
           decision.amountRecovered = o.amountRecoveredPaise;
           decision.timeToRecoveryHours = 1;
         }
-        if (o.outcome === "recovered") {
-          state.interventionCount += 0;
-        } else {
+        if (o.outcome === "escalated") {
           state.interventionCount = Math.max(0, state.interventionCount - 1);
+          if (decision.strategy) {
+            decision.strategy.reasoning +=
+              " [Escalated: customer raised a dispute during follow-up conversation]";
+          }
         }
         if (decision.apiCall) {
           decision.apiCall = {

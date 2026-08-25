@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T21:54:41.792Z",
+  "generated_at": "2026-08-25T22:30:21.296Z",
   "batch_id": "batch_2026-08-25_seed42",
   "seed": 42,
   "hero": {
@@ -242,7 +242,7 @@
     "records_prevented": 3,
     "api_calls_made": 112,
     "api_errors": 0,
-    "processing_time_ms": 23
+    "processing_time_ms": 3
   },
   "cost_benefit": {
     "intervention_cost_paise": 3665,

@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { SyntheticRecord, PromiseRecord, VoiceNotification } from "@/lib/data/schema";
+import { safeJsonParse } from "@/lib/db/json";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 export const DB_PATH = path.join(DATA_DIR, "synthetic.db");
@@ -17,6 +18,7 @@ let schemaInitialized = false;
 
 export function initSchema(db: Database.Database): void {
   if (schemaInitialized) return;
+  db.pragma("busy_timeout = 3000");
   db.exec(`
     CREATE TABLE IF NOT EXISTS records (
       record_id TEXT PRIMARY KEY,
@@ -233,7 +235,18 @@ export function rowToRecord(row: RecordRow): SyntheticRecord {
   return {
     ...row,
     voice_opt_in: row.voice_opt_in === 1 || (row.voice_opt_in as unknown) === true,
-    ground_truth: JSON.parse(row.ground_truth as unknown as string),
+    ground_truth: safeJsonParse(
+      typeof row.ground_truth === "string"
+        ? row.ground_truth
+        : String(row.ground_truth ?? ""),
+      {
+        recoverable: false,
+        recommended_intervention: "",
+        expected_recovery_probability: 0,
+        max_retries_allowed: 0,
+        recoverable_amount: 0,
+      },
+    ),
   };
 }
 

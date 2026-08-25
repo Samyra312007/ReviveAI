@@ -1,16 +1,20 @@
 import { PageHeader } from "@/components/ui";
 import { Timeline } from "@/components/timeline";
 import { getAuditRows, getConversationRows } from "@/lib/db/query";
+import { safeJsonParse } from "@/lib/db/json";
 
 export const dynamic = "force-dynamic";
 
 export default function TimelinePage() {
   const entries = getAuditRows();
-  const conversationRows = getConversationRows();
   const conversationMap = Object.fromEntries(
-    conversationRows.map((row) => [
+    getConversationRows().map((row) => [
       row.record_id,
-      { turns: JSON.parse(row.turns), intent: row.intent, resolution: row.resolution },
+      {
+        turns: safeJsonParse<{ speaker: string; text: string }[]>(row.turns, []),
+        intent: row.intent,
+        resolution: row.resolution,
+      },
     ]),
   );
   return (

@@ -3,6 +3,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { OutcomeBadge } from "./ui";
 import { buildCsv } from "@/lib/csv";
+import { safeJsonParse } from "@/lib/db/json";
 
 interface AuditEntry {
   id: number;
@@ -187,7 +188,7 @@ export function AuditLog({
                           <div><span className="text-zinc-500">Reasoning:</span> {e.decision_reasoning}</div>
                           {e.guardrail_checks && (
                             <ul className="space-y-0.5">
-                              {(JSON.parse(e.guardrail_checks) as { rule_id: string; passed: boolean; block_reason?: string }[]).filter(c => !c.passed).map(
+                              {(safeJsonParse<{ rule_id: string; passed: boolean; block_reason?: string }[]>(e.guardrail_checks, [])).filter(c => !c.passed).map(
                                 (c, i) => (
                                   <li key={i} className="text-fuchsia-400">
                                     ✕ [{c.rule_id}] {c.block_reason}
@@ -198,13 +199,13 @@ export function AuditLog({
                           )}
                           {e.error && (
                             <pre className="overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-rose-300">
-                              {JSON.stringify(JSON.parse(e.error), null, 2)}
+                              {JSON.stringify(safeJsonParse(e.error, {}), null, 2)}
                             </pre>
                           )}
                         </div>
                         {e.api_call && (
                           <pre className="max-h-48 overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-zinc-400">
-                            {JSON.stringify(JSON.parse(e.api_call), null, 2)}
+                            {JSON.stringify(safeJsonParse(e.api_call, {}), null, 2)}
                           </pre>
                         )}
                       </div>

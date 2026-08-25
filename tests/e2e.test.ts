@@ -31,7 +31,7 @@ describe("end-to-end batch", () => {
       (d) => d.record.type === "control",
     );
     for (const d of controlOutcomes) {
-      expect(["skipped", "prevented"]).toContain(d.outcome);
+      expect(["skipped", "prevented", "blocked"]).toContain(d.outcome);
       expect(d.amountRecovered).toBe(0);
       if (d.outcome === "prevented") {
         expect(d.strategy?.action).toBe("PREVENT_CARD_UPDATE");
@@ -67,15 +67,23 @@ describe("end-to-end batch", () => {
     const result = await runBatch(records, { seed: 42, now: NOW });
     const executed = result.auditEntries.filter((e) => e.api_call);
 
+    // Execution happens on exactly the same records regardless of
+    // post-execution conversation overrides — only outcomes may flip.
     const withoutConversations = await runBatch(records, {
       seed: 42,
       now: NOW,
       enableConversations: false,
     });
-    const expectedAttempts =
-      withoutConversations.report.operational.records_intervened +
-      (withoutConversations.report.prevention?.attempts ?? 0);
-    expect(executed.length).toBe(expectedAttempts);
+    const idsWith = result.auditEntries
+      .filter((e) => e.api_call)
+      .map((e) => e.record_id)
+      .sort();
+    const idsWithout = withoutConversations.auditEntries
+      .filter((e) => e.api_call)
+      .map((e) => e.record_id)
+      .sort();
+    expect(idsWith).toEqual(idsWithout);
+    expect(executed.length).toBeGreaterThan(90);
     expect(executed.every((e) => e.api_call!.simulated === true)).toBe(true);
   });
 

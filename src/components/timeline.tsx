@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { OutcomeBadge } from "./ui";
+import { safeJsonParse } from "@/lib/db/json";
 
 interface AuditEntry {
   id: number;
@@ -127,7 +128,7 @@ export function Timeline({
                   <div>
                     <h4 className="font-semibold text-zinc-300">Guardrail checks</h4>
                     <ul className="mt-1 space-y-0.5">
-                      {(JSON.parse(e.guardrail_checks) as { rule_id: string; passed: boolean; block_reason?: string }[]).map(
+                      {(safeJsonParse<{ rule_id: string; passed: boolean; block_reason?: string }[]>(e.guardrail_checks, [])).map(
                         (c, i) => (
                           <li key={i} className={c.passed ? "text-zinc-500" : "text-fuchsia-400"}>
                             {c.passed ? "✓" : "✕"} [{c.rule_id}]{" "}
@@ -142,7 +143,7 @@ export function Timeline({
                   <div>
                     <h4 className="font-semibold text-zinc-300">API call</h4>
                     <pre className="mt-1 max-h-40 overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-zinc-400">
-                      {JSON.stringify(JSON.parse(e.api_call), null, 2)}
+                      {JSON.stringify(safeJsonParse(e.api_call, {}), null, 2)}
                     </pre>
                   </div>
                 )}
@@ -177,7 +178,7 @@ export function Timeline({
                   <div>
                     <h4 className="font-semibold text-rose-400">Error</h4>
                     <pre className="mt-1 rounded bg-zinc-950 p-2 font-mono text-[10px] text-rose-300">
-                      {JSON.stringify(JSON.parse(e.error), null, 2)}
+                      {JSON.stringify(safeJsonParse(e.error, {}), null, 2)}
                     </pre>
                   </div>
                 )}

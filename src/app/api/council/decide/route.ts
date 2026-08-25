@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit, clientKey } from "@/lib/ratelimit";
 import { decideCouncilProposalInDb } from "@/lib/db/query";
 import { isTokenAuthorized } from "@/lib/auth";
+import { withExclusiveLock } from "@/lib/lock";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const rl = checkRateLimit(clientKey(request));
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded — retry shortly" },
+      { status: 429 },
+    );
+  }
+
   if (!isTokenAuthorized(request.headers.get("x-batch-token"))) {
     return NextResponse.json(
       { error: "Unauthorized — missing or invalid x-batch-token" },
@@ -24,9 +34,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = decideCouncilProposalInDb(proposalId, decision);
+  const result = await withExclusiveLock(() =>
+    decideCouncilProposalInDb(proposalId, decision),
+  );
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.error === "Proposal not found" ? 404 : 409 });
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.error === "Proposal not found" ? 404 : 409 },
+    );
   }
 
   return NextResponse.json({

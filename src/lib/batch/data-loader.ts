@@ -1,7 +1,16 @@
 import { openDb, initSchema } from "@/lib/db";
-import { SyntheticRecord, PromiseRecord } from "@/lib/data/schema";
+import { safeJsonParse } from "@/lib/db/json";
+import { SyntheticRecord, PromiseRecord, ReminderRecord, GroundTruth } from "@/lib/data/schema";
 import path from "node:path";
 import fs from "node:fs";
+
+const EMPTY_GROUND_TRUTH: GroundTruth = {
+  recoverable: false,
+  recommended_intervention: "",
+  expected_recovery_probability: 0,
+  max_retries_allowed: 0,
+  recoverable_amount: 0,
+};
 
 interface RecordRow {
   [key: string]: unknown;
@@ -30,7 +39,10 @@ export function loadBatchDataset(dbPath?: string): BatchDataset | null {
     const records = rows.map((row) => ({
       ...row,
       voice_opt_in: row.voice_opt_in === 1,
-      ground_truth: JSON.parse(row.ground_truth as string),
+      ground_truth: safeJsonParse<GroundTruth>(
+        row.ground_truth as string,
+        EMPTY_GROUND_TRUTH,
+      ),
     })) as unknown as SyntheticRecord[];
 
     const promiseRows = db
@@ -44,7 +56,7 @@ export function loadBatchDataset(dbPath?: string): BatchDataset | null {
     for (const p of promiseRows) {
       promisesByRecordId.set(p.record_id, {
         ...p,
-        reminders_sent: JSON.parse(p.reminders_sent),
+        reminders_sent: safeJsonParse<ReminderRecord[]>(p.reminders_sent, []),
       });
     }
 
@@ -60,7 +72,10 @@ export function attachPromiseHistories(
   return dataset.records.map((r) => {
     const history = dataset.promisesByRecordId.get(r.record_id);
     if (!history) return r;
-    return { ...r, promise_history: [history] } as SyntheticRecord;
+    return {
+      ...r,
+      promise_history: [structuredClone(history)],
+    } as SyntheticRecord;
   });
 }
 

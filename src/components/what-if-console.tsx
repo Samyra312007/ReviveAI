@@ -96,6 +96,14 @@ export function WhatIfConsole() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const runSimulation = useCallback(async (ovr: Record<string, number>) => {
     setLoading(true);
@@ -110,15 +118,16 @@ export function WhatIfConsole() {
         body: JSON.stringify({ overrides: ovr }),
       });
       const json: SimulateResponse = await res.json();
+      if (!mountedRef.current) return;
       if (!res.ok || json.error) setError(json.error ?? "Simulation failed");
       else {
         setData(json);
         setError(null);
       }
     } catch {
-      setError("Network error during simulation");
+      if (mountedRef.current) setError("Network error during simulation");
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, []);
 
