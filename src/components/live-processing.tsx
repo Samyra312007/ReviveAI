@@ -43,11 +43,7 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
     try {
       const res = await fetch("/api/batch/run", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-batch-token":
-            process.env.NEXT_PUBLIC_BATCH_TOKEN ?? "reviveai-demo-token",
-        },
+        headers: { "Content-Type": "application/json" },
       });
       const data: RunResponse = await res.json();
       if (timerRef.current) clearInterval(timerRef.current);

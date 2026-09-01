@@ -173,3 +173,13 @@ export const reports = pgTable("reports", {
   report: jsonb("report").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Credentials users (email + password auth via Auth.js) ──────────────────
+export const credentialsUsers = pgTable("credentials_users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("viewer"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

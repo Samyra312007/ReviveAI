@@ -110,11 +110,7 @@ export function WhatIfConsole() {
     try {
       const res = await fetch("/api/simulate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-batch-token":
-            process.env.NEXT_PUBLIC_BATCH_TOKEN ?? "reviveai-demo-token",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ overrides: ovr }),
       });
       const json: SimulateResponse = await res.json();

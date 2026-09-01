@@ -16,9 +16,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@auth/pg-adapter": "^1.11.3",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "^16.3.2",
+    "next-auth": "^5.0.0-beta.32",
     "pg": "^8.23.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24",
     "@types/pg": "^8.23.1",

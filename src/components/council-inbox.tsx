@@ -27,11 +27,7 @@ export function CouncilInbox({ proposals }: { proposals: Proposal[] }) {
     try {
       const res = await fetch("/api/council/decide", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-batch-token":
-            process.env.NEXT_PUBLIC_BATCH_TOKEN ?? "reviveai-demo-token",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ proposal_id: proposalId, decision }),
       });
       const data = await res.json();
