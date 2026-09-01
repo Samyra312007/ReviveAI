@@ -10,11 +10,16 @@
     "typecheck": "tsc --noEmit",
     "generate-data": "tsx scripts/generate-data.ts",
     "test": "vitest run",
-    "run-batch": "tsx scripts/run-batch.ts"
+    "run-batch": "tsx scripts/run-batch.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.2",
     "next": "^16.3.2",
+    "pg": "^8.23.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zustand": "^5.0.8"
@@ -23,8 +28,10 @@
     "@tailwindcss/postcss": "^4.1.14",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "^16.3.2",
     "tailwindcss": "^4.1.14",
