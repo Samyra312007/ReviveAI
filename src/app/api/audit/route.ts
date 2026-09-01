@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  let rows = getAuditRows();
+  let rows = await getAuditRows();
 
   const outcome = searchParams.get("outcome");
   if (outcome) rows = rows.filter((r) => r.outcome === outcome);

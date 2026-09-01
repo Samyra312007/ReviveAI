@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getPromiseRows } from "@/lib/db/query";
 import { MetricCard, PageHeader, EmptyState, Table, formatInr } from "@/components/ui";
 
@@ -17,8 +18,10 @@ function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - NOW) / (24 * 3600 * 1000));
 }
 
-export default function PromisesPage() {
-  const rows = getPromiseRows();
+export default async function PromisesPage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const rows = await getPromiseRows(merchantIds);
 
   if (rows.length === 0) {
     return (

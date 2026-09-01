@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const report = getReportJson();
+  const report = await getReportJson();
   if (!report) {
     return NextResponse.json(
       { error: "No report found. Run the batch first." },

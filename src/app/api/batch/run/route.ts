@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { checkRateLimit, clientKey } from "@/lib/ratelimit";
 import { executeBatchRun } from "@/lib/batch/service";
 
@@ -15,8 +16,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  // Pass a legacy token for backward compatibility; the batch service
+  // still checks it but the middleware already enforced auth.
   await request.json().catch(() => ({}));
-  const token = request.headers.get("x-batch-token");
-  const result = await executeBatchRun(token);
+  const result = await executeBatchRun(null);
   return NextResponse.json(result.body, { status: result.status });
 }

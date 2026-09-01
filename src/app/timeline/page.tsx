@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { PageHeader } from "@/components/ui";
 import { Timeline } from "@/components/timeline";
 import { getAuditRows, getConversationRows } from "@/lib/db/query";
@@ -5,13 +6,19 @@ import { safeJsonParse } from "@/lib/db/json";
 
 export const dynamic = "force-dynamic";
 
-export default function TimelinePage() {
-  const entries = getAuditRows();
+export default async function TimelinePage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const entries = await getAuditRows(merchantIds);
+  const conversationRows = await getConversationRows(merchantIds);
   const conversationMap = Object.fromEntries(
-    getConversationRows().map((row) => [
+    conversationRows.map((row) => [
       row.record_id,
       {
-        turns: safeJsonParse<{ speaker: string; text: string }[]>(row.turns, []),
+        turns: safeJsonParse<{ speaker: string; text: string }[]>(
+          typeof row.turns === "string" ? row.turns : JSON.stringify(row.turns),
+          [],
+        ),
         intent: row.intent,
         resolution: row.resolution,
       },

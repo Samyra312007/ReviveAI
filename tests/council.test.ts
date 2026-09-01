@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, vi } from "vitest";
 import {
   generateTuningProposals,
   BlockObservation,
@@ -183,7 +183,7 @@ describe("council service roundtrip — approve → applied next run", () => {
     expect(seedRun.status).toBe(200);
     void seedRun;
 
-    const state = getCouncilState();
+    const state = await getCouncilState();
 
     let target = state.proposals.find((p) => p.status === "pending");
 
@@ -208,16 +208,16 @@ describe("council service roundtrip — approve → applied next run", () => {
         },
       ]);
       db.close();
-      const refreshed = getCouncilState();
+      const refreshed = await getCouncilState();
       target = refreshed.proposals.find((p) => p.status === "pending")!;
     }
 
     expect(target).toBeDefined();
 
-    const decision = decideCouncilProposalInDb(target!.proposal_id, "approved");
+    const decision = await decideCouncilProposalInDb(target!.proposal_id, "approved");
     expect(decision.ok).toBe(true);
 
-    const doubleDecide = decideCouncilProposalInDb(target!.proposal_id, "rejected");
+    const doubleDecide = await decideCouncilProposalInDb(target!.proposal_id, "rejected");
     expect(doubleDecide.ok).toBe(false);
 
     const appliedRun = await executeBatchRun(DEMO_BATCH_TOKEN);
@@ -232,7 +232,7 @@ describe("council service roundtrip — approve → applied next run", () => {
       target!.proposed_value,
     );
 
-    const afterState = getCouncilState();
+    const afterState = await getCouncilState();
     const decidedRow = afterState.proposals.find(
       (p) => p.proposal_id === target!.proposal_id,
     )!;
@@ -241,6 +241,8 @@ describe("council service roundtrip — approve → applied next run", () => {
   });
 
   it("decide API rejects unauthorized calls at the route level", async () => {
+    // Mock auth to return null (unauthenticated)
+    vi.mock("@/auth", () => ({ auth: vi.fn(async () => null) }));
     const { POST } = await import("@/app/api/council/decide/route");
     const res = await POST(
       new Request("http://localhost/api/council/decide", {
@@ -249,5 +251,6 @@ describe("council service roundtrip — approve → applied next run", () => {
       }) as never,
     );
     expect(res.status).toBe(401);
+    vi.restoreAllMocks();
   });
 });

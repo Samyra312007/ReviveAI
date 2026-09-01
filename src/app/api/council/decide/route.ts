@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { checkRateLimit, clientKey } from "@/lib/ratelimit";
 import { decideCouncilProposalInDb } from "@/lib/db/query";
-import { isTokenAuthorized } from "@/lib/auth";
 import { withExclusiveLock } from "@/lib/lock";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const OWNER_APPROVER_ROLES = new Set(["owner", "approver"]);
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(clientKey(request));
@@ -16,10 +18,20 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isTokenAuthorized(request.headers.get("x-batch-token"))) {
+  // ── Session-based auth ──
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json(
-      { error: "Unauthorized — missing or invalid x-batch-token" },
+      { error: "Unauthorized" },
       { status: 401 },
+    );
+  }
+
+  // ── RBAC: only owner/approver may decide proposals ──
+  if (!OWNER_APPROVER_ROLES.has(session.user.role)) {
+    return NextResponse.json(
+      { error: "Forbidden — only owners and approvers may decide council proposals" },
+      { status: 403 },
     );
   }
 

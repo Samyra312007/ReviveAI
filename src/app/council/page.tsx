@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getCouncilState } from "@/lib/db/query";
 import { PageHeader, Table, EmptyState } from "@/components/ui";
 import { CouncilInbox } from "@/components/council-inbox";
@@ -31,8 +32,8 @@ const PARAM_LABELS: Record<string, string> = {
   cooldownHours: "Cooldown period",
 };
 
-export default function CouncilPage() {
-  const { proposals, overrides } = getCouncilState();
+export default async function CouncilPage() {
+  const { proposals, overrides } = await getCouncilState();
   const pending = proposals.filter((p) => p.status === "pending");
   const decided = proposals.filter((p) => p.status !== "pending");
 

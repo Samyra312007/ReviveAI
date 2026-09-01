@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 import { getRecordsWithOutcomes, getReportJson } from "@/lib/db/query";
 import { MetricCard, PageHeader, EmptyState, Table } from "@/components/ui";
 import { LiveProcessing } from "@/components/live-processing";
@@ -35,9 +36,11 @@ const PAGES = [
   { href: "/audit", label: "Full Audit Log", desc: "Searchable, filterable, exportable" },
 ];
 
-export default function DashboardPage() {
-  const report = getReportJson() as Report | null;
-  const records = getRecordsWithOutcomes();
+export default async function DashboardPage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const report = (await getReportJson()) as Report | null;
+  const records = await getRecordsWithOutcomes(merchantIds);
 
   if (!report) {
     return (

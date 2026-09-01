@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getAuditRows, getReportJson } from "@/lib/db/query";
 import { MetricCard, PageHeader, EmptyState, Table, ProgressBar } from "@/components/ui";
 
@@ -36,8 +37,10 @@ interface GuardrailCheck {
   block_reason?: string;
 }
 
-export default function GuardrailsPage() {
-  const report = getReportJson() as Report | null;
+export default async function GuardrailsPage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const report = (await getReportJson()) as Report | null;
 
   if (!report) {
     return (
@@ -48,13 +51,16 @@ export default function GuardrailsPage() {
     );
   }
 
-  const allRows = getAuditRows();
+  const allRows = await getAuditRows(merchantIds);
   const blockedRows = allRows.filter((r) => r.outcome === "blocked");
   const byRule = report.guardrails.blocks_by_rule;
   const maxRuleCount = Math.max(1, ...Object.values(byRule));
   const totalChecks = allRows.reduce((sum, r) => {
     if (!r.guardrail_checks) return sum;
-    return sum + (JSON.parse(r.guardrail_checks) as GuardrailCheck[]).length;
+    const checks = Array.isArray(r.guardrail_checks)
+      ? r.guardrail_checks
+      : [];
+    return sum + checks.length;
   }, 0);
   const totalPassed = totalChecks - Object.values(byRule).reduce((a, b) => a + b, 0);
 
@@ -115,9 +121,10 @@ export default function GuardrailsPage() {
         ) : (
           <Table headers={["Record", "Category", "Strategy Attempted", "Blocked By", "Reason"]}>
             {blockedRows.map((row) => {
-              const failed = row.guardrail_checks
-                ? (JSON.parse(row.guardrail_checks) as GuardrailCheck[]).filter((c) => !c.passed)
+              const checks = Array.isArray(row.guardrail_checks)
+                ? (row.guardrail_checks as GuardrailCheck[])
                 : [];
+              const failed = checks.filter((c) => !c.passed);
               return (
                 <tr key={row.id} className="text-zinc-300">
                   <td className="px-4 py-2.5 font-mono text-xs">{row.record_id}</td>

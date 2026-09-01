@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getRecordsWithOutcomes, getReportJson } from "@/lib/db/query";
 import { buildFleetSummary } from "@/lib/fleet/aggregate";
 import { MetricCard, PageHeader, EmptyState, Table } from "@/components/ui";
@@ -17,9 +18,11 @@ function formatCr(paise: number): string {
   return `₹${cr.toFixed(2)} Cr`;
 }
 
-export default function FleetPage() {
-  const report = getReportJson() as ReportLike | null;
-  const rows = getRecordsWithOutcomes().map((r) => ({
+export default async function FleetPage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const report = (await getReportJson()) as ReportLike | null;
+  const rows = (await getRecordsWithOutcomes(merchantIds)).map((r) => ({
     merchant_id: r.merchant_id,
     type: r.type,
     amount: r.amount,

@@ -37,6 +37,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: string;
+      merchantIds: string[];
       name?: string | null;
       email?: string | null;
       image?: string | null;
@@ -45,6 +46,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     role: string;
+    merchantIds: string[];
   }
 }
 
@@ -96,7 +98,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           // Look up user in our credentials_users table
           const result = await pool.query(
-            "SELECT id, email, name, password_hash, role FROM credentials_users WHERE email = $1 LIMIT 1",
+            "SELECT id, email, name, password_hash, role, merchant_ids FROM credentials_users WHERE email = $1 LIMIT 1",
             [email],
           );
           const user = result.rows[0];
@@ -105,11 +107,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const valid = await bcrypt.compare(password, user.password_hash);
           if (!valid) return null;
 
+          // merchant_ids is stored as JSONB; fall back to all merchants for admin/owner
+          const rawMerchantIds = user.merchant_ids;
+          const merchantIds: string[] =
+            Array.isArray(rawMerchantIds)
+              ? rawMerchantIds
+              : typeof rawMerchantIds === "string"
+                ? JSON.parse(rawMerchantIds)
+                : [];
+
           return {
             id: user.id,
             name: user.name ?? email.split("@")[0],
             email: user.email,
             role: user.role ?? "viewer",
+            merchantIds,
           };
         } catch (err) {
           console.error("[auth] authorize error", err);
@@ -124,6 +136,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "viewer";
+        token.merchantIds = (user as { merchantIds?: string[] }).merchantIds ?? [];
       }
       return token;
     },
@@ -131,6 +144,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as string) ?? "viewer";
+        session.user.merchantIds = (token.merchantIds as string[]) ?? [];
       }
       return session;
     },

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 import { getAuditRows, getReportJson } from "@/lib/db/query";
 import { MetricCard, PageHeader, EmptyState, Table, OutcomeBadge } from "@/components/ui";
 
@@ -13,8 +14,10 @@ interface Report {
   }[];
 }
 
-export default function ExceptionsPage() {
-  const report = getReportJson() as Report | null;
+export default async function ExceptionsPage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const report = (await getReportJson()) as Report | null;
 
   if (!report) {
     return (
@@ -25,7 +28,7 @@ export default function ExceptionsPage() {
     );
   }
 
-  const rows = getAuditRows();
+  const rows = await getAuditRows(merchantIds);
   const byOutcome = report.exceptions.reduce<Record<string, number>>((acc, e) => {
     acc[e.outcome] = (acc[e.outcome] ?? 0) + 1;
     return acc;

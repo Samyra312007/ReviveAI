@@ -3,7 +3,7 @@ import { WhatIfConsole } from "@/components/what-if-console";
 
 export const dynamic = "force-dynamic";
 
-export default function SimulatorPage() {
+export default async function SimulatorPage() {
   return (
     <>
       <PageHeader

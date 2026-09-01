@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { checkRateLimit, clientKey } from "@/lib/ratelimit";
 import { simulateScenario } from "@/lib/simulator/service";
-import { isTokenAuthorized } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,9 +16,10 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isTokenAuthorized(request.headers.get("x-batch-token"))) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json(
-      { error: "Unauthorized — missing or invalid x-batch-token" },
+      { error: "Unauthorized" },
       { status: 401 },
     );
   }

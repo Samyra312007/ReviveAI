@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getVoiceRows, getAuditRows } from "@/lib/db/query";
 import { MetricCard, PageHeader, Table } from "@/components/ui";
 import { VoicePreview } from "@/components/voice-preview";
@@ -7,9 +8,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default function VoicePage() {
-  const rows = getVoiceRows();
-  const auditRows = getAuditRows();
+export default async function VoicePage() {
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const rows = await getVoiceRows(merchantIds);
+  const auditRows = await getAuditRows(merchantIds);
 
   const metrics = computeVoiceMetrics(
     rows.map((r) => ({

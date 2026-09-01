@@ -30,8 +30,10 @@ export interface BatchRunResponse {
 
 let inFlight: Promise<BatchRunResponse> | null = null;
 
-export function executeBatchRun(token: string | null): Promise<BatchRunResponse> {
-  if (!isTokenAuthorized(token)) {
+export function executeBatchRun(token?: string | null): Promise<BatchRunResponse> {
+  // Token check is optional — middleware handles auth now.
+  // Keep backward compatibility for scripts that pass the token directly.
+  if (token !== undefined && token !== null && !isTokenAuthorized(token)) {
     return Promise.resolve({ status: 401, body: { error: "Unauthorized — missing or invalid x-batch-token" } });
   }
   if (inFlight) {

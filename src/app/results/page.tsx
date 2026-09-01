@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { getReportJson } from "@/lib/db/query";
 import { MetricCard, PageHeader, EmptyState, Table, ProgressBar, formatInr } from "@/components/ui";
 
@@ -43,8 +44,9 @@ interface Report {
   };
 }
 
-export default function ResultsPage() {
-  const report = getReportJson() as Report | null;
+export default async function ResultsPage() {
+  const session = await auth();
+  const report = (await getReportJson()) as Report | null;
 
   if (!report) {
     return (

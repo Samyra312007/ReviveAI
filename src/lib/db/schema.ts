@@ -181,5 +181,6 @@ export const credentialsUsers = pgTable("credentials_users", {
   name: text("name"),
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull().default("viewer"),
+  merchantIds: jsonb("merchant_ids").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

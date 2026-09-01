@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { PageHeader } from "@/components/ui";
 import { AuditLog } from "@/components/audit-log";
 import { getAuditRows } from "@/lib/db/query";
@@ -10,7 +11,9 @@ export default async function AuditPage({
   searchParams: Promise<{ record_id?: string }>;
 }) {
   const { record_id } = await searchParams;
-  const entries = getAuditRows();
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const entries = await getAuditRows(merchantIds);
   return (
     <>
       <PageHeader

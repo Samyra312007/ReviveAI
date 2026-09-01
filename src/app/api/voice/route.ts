@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const rows = getVoiceRows();
-  const auditRows = getAuditRows();
+  const rows = await getVoiceRows();
+  const auditRows = await getAuditRows();
   const decisions = auditRows.map((row) => ({
     record: { record_id: row.record_id },
     outcome: row.outcome,
