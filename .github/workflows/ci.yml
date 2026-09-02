@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build needs to succeed without real secrets; fall back to dummy values
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/reviveai
+          AUTH_SECRET: ci-dummy-secret-for-build-only-32chars!
+          BATCH_TOKEN: ci-dummy-batch-token
+          NEXT_PUBLIC_BATCH_TOKEN: ci-dummy-batch-token
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vercel deploy is automatic on push to main
+        run: echo "Vercel auto-deploys on push to main when connected via Vercel Git integration."
