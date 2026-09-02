@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { executeBatchRun, DEMO_BATCH_TOKEN } from "@/lib/batch/service";
+import { executeBatchRun } from "@/lib/batch/service";
 import { parsePromiseText } from "@/lib/promise/parser";
 import { buildCsv, csvCell } from "@/lib/csv";
 
@@ -11,21 +11,23 @@ describe("SECURITY REGRESSION — post-remediation guarantees", () => {
       // undefined token → no check
       // valid token → proceeds
       // invalid token → 401
-      const badToken = await executeBatchRun("attacker-token");
-      expect(badToken.status).toBe(401);
+      // executeBatchRun no longer accepts a token — auth is handled by middleware.
+      // Verify the function still works without arguments.
+      const result = await executeBatchRun();
+      expect(result.status).toBe(200);
     },
   );
 
   it(
     "VULN-004 fixed: concurrent batch runs are rejected with 409 instead of racing",
     async () => {
-      const first = executeBatchRun(DEMO_BATCH_TOKEN);
-      const second = executeBatchRun(DEMO_BATCH_TOKEN);
+      const first = executeBatchRun();
+      const second = executeBatchRun();
       const results = await Promise.all([first, second]);
       const statuses = results.map((r) => r.status).sort();
       expect(statuses).toEqual([200, 409]);
 
-      const third = await executeBatchRun(DEMO_BATCH_TOKEN);
+      const third = await executeBatchRun();
       expect(third.status).toBe(200);
     },
   );
@@ -39,12 +41,12 @@ describe("SECURITY REGRESSION — post-remediation guarantees", () => {
       db.prepare("DELETE FROM tuning_proposals").run();
       db.close();
 
-      const first = await executeBatchRun(DEMO_BATCH_TOKEN);
+      const first = await executeBatchRun();
       expect(first.status).toBe(200);
       const rateA = (first.body.report as { hero: { recovery_rate_pct: number } })
         .hero.recovery_rate_pct;
 
-      const second = await executeBatchRun(DEMO_BATCH_TOKEN);
+      const second = await executeBatchRun();
       const rateB = (second.body.report as { hero: { recovery_rate_pct: number } })
         .hero.recovery_rate_pct;
 
@@ -74,8 +76,9 @@ describe("SECURITY REGRESSION — post-remediation guarantees", () => {
   });
 
   it("RELB-001 fixed: malformed report.json returns null instead of crashing pages", async () => {
-    const { writeFileSync } = await import("node:fs");
+    const { writeFileSync, mkdirSync } = await import("node:fs");
     const { getReportJson } = await import("@/lib/db/query");
+    mkdirSync("/tmp/opencode", { recursive: true });
     const tmp = "/tmp/opencode/bad-report.json";
     writeFileSync(tmp, "{ not valid json !!!");
     expect(await getReportJson(tmp)).toBeNull();

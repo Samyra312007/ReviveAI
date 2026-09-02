@@ -81,12 +81,13 @@ export function toAuditEntry(
   };
 }
 
-import BetterSqlite3 from "better-sqlite3";
+import type BetterSqlite3 from "better-sqlite3";
 
 export interface AuditWriter {
-  write(entries: AuditLogEntry[]): void;
+  write(entries: AuditLogEntry[]): void | Promise<void>;
 }
 
+// ── SQLite writer (local dev / tests) ───────────────────────────────────────
 export class SqliteAuditWriter implements AuditWriter {
   private insert: ReturnType<BetterSqlite3.Database["prepare"]>;
   private db: BetterSqlite3.Database;
@@ -135,6 +136,39 @@ export class SqliteAuditWriter implements AuditWriter {
       }
     });
     tx(entries);
+  }
+}
+
+// ── Postgres writer (production via Neon) ────────────────────────────────────
+export class PostgresAuditWriter implements AuditWriter {
+  async write(entries: AuditLogEntry[]): Promise<void> {
+    const { getDrizzle } = await import("@/lib/db/pool");
+    const db = getDrizzle();
+    if (!db) throw new Error("Postgres pool not available");
+    const { auditLog } = await import("@/lib/db/schema");
+    const rows = entries.map((e) => ({
+      runId: e.run_id ?? null,
+      timestamp: new Date(e.timestamp),
+      recordId: e.record_id,
+      merchantId: e.merchant_id,
+      customerId: e.customer_id,
+      detectedCategory: e.detected_category ?? null,
+      detectedSubcategory: e.detected_subcategory ?? null,
+      detectionConfidence: e.detection_confidence ?? null,
+      selectedStrategy: e.selected_strategy ?? null,
+      decisionReasoning: e.decision_reasoning ?? null,
+      guardrailChecks: e.guardrail_checks ?? null,
+      actionTaken: e.action_taken ?? null,
+      apiCall: e.api_call ?? null,
+      outcome: e.outcome,
+      amountRecovered: e.amount_recovered ?? null,
+      timeToRecoveryHours: e.time_to_recovery_hours ?? null,
+      error: e.error ?? null,
+    }));
+    // Batch insert in chunks of 50 to avoid parameter limits
+    for (let i = 0; i < rows.length; i += 50) {
+      await db.insert(auditLog).values(rows.slice(i, i + 50));
+    }
   }
 }
 

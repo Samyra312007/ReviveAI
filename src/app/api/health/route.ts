@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { isPostgresEnabled, checkPostgresHealth } from "@/lib/db/pool";
+import { checkPostgresHealth } from "@/lib/db/pool";
 import { getReportJson } from "@/lib/db/query";
-import fs from "node:fs";
-import path from "node:path";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,25 +9,20 @@ export async function GET() {
   const startedAt = Date.now();
 
   // 1) DB health
-  let dbStatus: "sqlite" | "postgres:ok" | "postgres:unreachable" | "missing" = "missing";
+  let dbStatus: "postgres:ok" | "postgres:unreachable" | "file-only" | "missing" = "missing";
   let dbLatencyMs: number | null = null;
 
-  const dbPath = path.join(process.cwd(), "data", "synthetic.db");
-  if (isPostgresEnabled()) {
+  if (process.env.DATABASE_URL) {
     const t0 = Date.now();
     const ok = await checkPostgresHealth();
     dbLatencyMs = Date.now() - t0;
-    if (ok) {
-      dbStatus = "postgres:ok";
-    } else if (fs.existsSync(dbPath)) {
-      // Neon unreachable but local SQLite fallback still serves traffic (dev/CI)
-      dbStatus = "sqlite";
-      dbLatencyMs = null;
-    } else {
-      dbStatus = "postgres:unreachable";
-    }
-  } else if (fs.existsSync(dbPath)) {
-    dbStatus = "sqlite";
+    dbStatus = ok ? "postgres:ok" : "postgres:unreachable";
+  } else {
+    // No DATABASE_URL — check if file-based data exists
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const dbPath = path.join(process.cwd(), "data", "synthetic.db");
+    dbStatus = fs.existsSync(dbPath) ? "file-only" : "missing";
   }
 
   // 2) Report freshness
@@ -44,7 +37,7 @@ export async function GET() {
     reportAgeMs !== null ? Math.round((reportAgeMs / 3600000) * 10) / 10 : null;
 
   const healthy =
-    (dbStatus === "sqlite" || dbStatus === "postgres:ok") && report !== null;
+    (dbStatus === "file-only" || dbStatus === "postgres:ok") && report !== null;
 
   return NextResponse.json(
     {
@@ -52,7 +45,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       uptime_s: Math.round(process.uptime()),
       db: {
-        mode: isPostgresEnabled() ? "postgres" : "sqlite",
+        mode: process.env.DATABASE_URL ? "postgres" : "sqlite",
         status: dbStatus,
         latency_ms: dbLatencyMs,
       },
@@ -64,6 +57,11 @@ export async function GET() {
             recovery_rate_pct: report.hero?.recovery_rate_pct ?? null,
           }
         : { present: false },
+      env: {
+        node_env: process.env.NODE_ENV ?? "unknown",
+        sentry_enabled: !!(process.env.NEXT_PUBLIC_SENTRY_DSN),
+        auth_configured: !!(process.env.AUTH_SECRET),
+      },
       latency_ms: Date.now() - startedAt,
     },
     { status: healthy ? 200 : 503 },

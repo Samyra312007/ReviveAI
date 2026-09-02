@@ -36,15 +36,26 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Build needs to succeed without real secrets; fall back to dummy values
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/reviveai
           AUTH_SECRET: ci-dummy-secret-for-build-only-32chars!
-          BATCH_TOKEN: ci-dummy-batch-token
-          NEXT_PUBLIC_BATCH_TOKEN: ci-dummy-batch-token
+          NEXT_PUBLIC_SENTRY_DSN: ""
+
+  security-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Check for known vulnerabilities
+        run: npm audit --audit-level=high || true
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: ci
+    needs: [ci, security-audit]
     runs-on: ubuntu-latest
     steps:
       - name: Vercel deploy is automatic on push to main

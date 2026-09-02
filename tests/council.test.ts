@@ -11,7 +11,6 @@ import { runBatch } from "@/lib/agent/core";
 import { generateBatch } from "@/lib/data/generator";
 import {
   executeBatchRun,
-  DEMO_BATCH_TOKEN,
 } from "@/lib/batch/service";
 import {
   getCouncilState,
@@ -179,7 +178,7 @@ describe("council service roundtrip — approve → applied next run", () => {
 
   it("full lifecycle: run → propose → approve → override active → next run reports it", async () => {
     void afterAll;
-    const seedRun = await executeBatchRun(DEMO_BATCH_TOKEN);
+    const seedRun = await executeBatchRun();
     expect(seedRun.status).toBe(200);
     void seedRun;
 
@@ -220,7 +219,7 @@ describe("council service roundtrip — approve → applied next run", () => {
     const doubleDecide = await decideCouncilProposalInDb(target!.proposal_id, "rejected");
     expect(doubleDecide.ok).toBe(false);
 
-    const appliedRun = await executeBatchRun(DEMO_BATCH_TOKEN);
+    const appliedRun = await executeBatchRun();
     expect(appliedRun.status).toBe(200);
     const council = (
       appliedRun.body as {

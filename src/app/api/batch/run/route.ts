@@ -24,9 +24,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Pass a legacy token for backward compatibility; the batch service
-  // still checks it but the middleware already enforced auth.
   await request.json().catch(() => ({}));
-  const result = await executeBatchRun(null);
+  const result = await executeBatchRun();
   return NextResponse.json(result.body, { status: result.status });
 }

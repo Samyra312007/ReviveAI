@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-09-02T01:15:20.149Z",
+  "generated_at": "2026-09-02T02:12:20.142Z",
   "batch_id": "batch_2026-09-02_seed42",
   "seed": 42,
   "hero": {
-    "recovered_display": "₹5,06,947",
+    "recovered_display": "₹5,89,482",
     "at_risk_display": "₹12,57,691",
-    "recovery_rate_pct": 40.3,
-    "roi_display": "13737.4x"
+    "recovery_rate_pct": 46.9,
+    "roi_display": "16193.6x"
   },
   "recovery": {
     "at_risk_paise": 125769100,
-    "recovered_paise": 50694700,
-    "recovery_rate": 0.403,
-    "avg_time_to_recovery_hours": 16.1,
+    "recovered_paise": 58948200,
+    "recovery_rate": 0.469,
+    "avg_time_to_recovery_hours": 16.8,
     "recoverable_records": 122,
-    "recovered_records": 59
+    "recovered_records": 65
   },
   "recovery_by_category": [
     {
@@ -29,11 +29,11 @@
     {
       "category": "overdue_invoice",
       "at_risk_paise": 44642000,
-      "recovered_paise": 14621200,
-      "recovery_rate": 0.328,
-      "avg_time_to_recovery_hours": 20.6,
+      "recovered_paise": 22806600,
+      "recovery_rate": 0.511,
+      "avg_time_to_recovery_hours": 17.9,
       "recoverable_records": 20,
-      "recovered_records": 7
+      "recovered_records": 11
     },
     {
       "category": "checkout_abandonment",
@@ -47,11 +47,11 @@
     {
       "category": "subscription_failure",
       "at_risk_paise": 6855200,
-      "recovered_paise": 2488800,
-      "recovery_rate": 0.363,
-      "avg_time_to_recovery_hours": 21.2,
+      "recovered_paise": 2556900,
+      "recovery_rate": 0.373,
+      "avg_time_to_recovery_hours": 24.4,
       "recoverable_records": 30,
-      "recovered_records": 12
+      "recovered_records": 14
     },
     {
       "category": "control",
@@ -66,13 +66,13 @@
   "accuracy": {
     "overall": {
       "category": "overall",
-      "tp": 119,
+      "tp": 121,
       "fp": 1,
       "tn": 23,
-      "fn": 3,
+      "fn": 1,
       "precision": 0.992,
-      "recall": 0.975,
-      "f1": 0.983
+      "recall": 0.992,
+      "f1": 0.992
     },
     "by_category": [
       {
@@ -97,13 +97,13 @@
       },
       {
         "category": "subscription_failure",
-        "tp": 28,
+        "tp": 30,
         "fp": 0,
         "tn": 0,
-        "fn": 2,
+        "fn": 0,
         "precision": 1,
-        "recall": 0.933,
-        "f1": 0.965
+        "recall": 1,
+        "f1": 1
       },
       {
         "category": "overdue_invoice",
@@ -129,11 +129,9 @@
     "false_positive_rate": 0.042
   },
   "guardrails": {
-    "total_blocks": 2,
-    "block_rate": 1.3,
-    "blocks_by_rule": {
-      "B4": 2
-    }
+    "total_blocks": 0,
+    "block_rate": 0,
+    "blocks_by_rule": {}
   },
   "exceptions": [
     {
@@ -179,18 +177,6 @@
       "outcome": "escalated"
     },
     {
-      "record_id": "rec_082",
-      "type": "subscription_failure",
-      "reason": "Beyond 7-day retry window (7 days)",
-      "outcome": "blocked"
-    },
-    {
-      "record_id": "rec_094",
-      "type": "subscription_failure",
-      "reason": "Beyond 7-day retry window (8 days)",
-      "outcome": "blocked"
-    },
-    {
       "record_id": "rec_107",
       "type": "subscription_failure",
       "reason": "High confidence (0.87) — routing to agent core",
@@ -215,7 +201,7 @@
       "outcome": "escalated"
     },
     {
-      "record_id": "rec_126",
+      "record_id": "rec_124",
       "type": "overdue_invoice",
       "reason": "High confidence (0.9) — routing to agent core",
       "outcome": "escalated"
@@ -241,24 +227,24 @@
   ],
   "operational": {
     "total_records": 150,
-    "records_intervened": 106,
-    "records_skipped": 25,
+    "records_intervened": 108,
+    "records_skipped": 24,
     "records_escalated": 14,
-    "records_blocked": 2,
-    "records_prevented": 3,
-    "api_calls_made": 111,
+    "records_blocked": 0,
+    "records_prevented": 4,
+    "api_calls_made": 113,
     "api_errors": 0,
     "processing_time_ms": 4
   },
   "cost_benefit": {
-    "intervention_cost_paise": 3690,
-    "net_recovered_paise": 50691010,
-    "roi_multiple": 13737.4
+    "intervention_cost_paise": 3640,
+    "net_recovered_paise": 58944560,
+    "roi_multiple": 16193.6
   },
   "prevention": {
     "flagged_customers": 4,
     "attempts": 4,
-    "prevented": 3,
-    "protected_amount_paise": 11283900
+    "prevented": 4,
+    "protected_amount_paise": 11347800
   }
 }

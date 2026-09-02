@@ -1,5 +1,5 @@
 import { GuardrailConfig } from "@/lib/guardrails/config";
-import { TuningProposalInsert } from "@/lib/db";
+import { TuningProposalInsert } from "@/lib/db/query";
 
 export interface BlockObservation {
   rule_id: string;
