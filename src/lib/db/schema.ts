@@ -77,6 +77,7 @@ export const auditLog = pgTable(
   "audit_log",
   {
     id: serial("id").primaryKey(),
+    runId: text("run_id"),
     timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),
     recordId: text("record_id").notNull(),
     merchantId: text("merchant_id").notNull(),
@@ -97,6 +98,7 @@ export const auditLog = pgTable(
   (t) => [
     index("idx_audit_record").on(t.recordId),
     index("idx_audit_outcome").on(t.outcome),
+    index("idx_audit_run_id").on(t.runId),
   ],
 );
 

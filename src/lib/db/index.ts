@@ -14,10 +14,7 @@ export function openDb(dbPath: string = DB_PATH): Database.Database {
   return db;
 }
 
-let schemaInitialized = false;
-
 export function initSchema(db: Database.Database): void {
-  if (schemaInitialized) return;
   db.pragma("busy_timeout = 3000");
   db.exec(`
     CREATE TABLE IF NOT EXISTS records (
@@ -69,6 +66,7 @@ export function initSchema(db: Database.Database): void {
 
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      run_id TEXT,
       timestamp TEXT NOT NULL,
       record_id TEXT NOT NULL,
       merchant_id TEXT NOT NULL,
@@ -150,7 +148,16 @@ export function initSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_voice_record ON voice_notifications(record_id);
     CREATE INDEX IF NOT EXISTS idx_proposals_status ON tuning_proposals(status);
   `);
-  schemaInitialized = true;
+  // ── RBI audit immutability: migrate existing audit_log to append-only with run_id ──
+  try {
+    const cols = db.prepare("PRAGMA table_info(audit_log)").all() as { name: string }[];
+    if (!cols.some((c) => c.name === "run_id")) {
+      db.exec("ALTER TABLE audit_log ADD COLUMN run_id TEXT");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_audit_run_id ON audit_log(run_id)");
+  } catch {
+    // best-effort migration; fresh DBs already have the column
+  }
 }
 
 interface RecordRow extends Omit<SyntheticRecord, "voice_opt_in" | "promise_history"> {

@@ -83,6 +83,8 @@ async function performRun(): Promise<BatchRunResponse> {
     );
 
     const records = attachPromiseHistories(dataset);
+    // RBI audit immutability: each batch run gets a unique run_id, audit is append-only
+    const runId = `run_${Date.now()}_${SERVER_SEED}`;
 
     const result = await runBatch(records, {
       seed: SERVER_SEED,
@@ -90,9 +92,11 @@ async function performRun(): Promise<BatchRunResponse> {
       guardrailConfig: guardrailOverrides,
     });
 
+    // Tag audit entries with run_id for append-only history
+    const taggedEntries = result.auditEntries.map((e) => ({ ...e, run_id: runId }));
+
     const persist = db.transaction(() => {
-      db.prepare("DELETE FROM audit_log").run();
-      new SqliteAuditWriter(db).write(result.auditEntries);
+      new SqliteAuditWriter(db).write(taggedEntries);
       clearVoiceNotifications(db);
       insertVoiceNotifications(db, result.voiceNotifications);
       insertPromises(db, result.promiseUpdates);

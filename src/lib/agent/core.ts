@@ -412,7 +412,7 @@ export async function runBatch(
 
   return {
     decisions,
-    auditEntries: decisions.map(toAuditEntry),
+    auditEntries: decisions.map((d) => toAuditEntry(d)),
     guardrailAudit: allGuardrailAudit,
     voiceNotifications,
     promiseUpdates,

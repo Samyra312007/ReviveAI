@@ -5,6 +5,7 @@ import fs from "node:fs";
 
 export interface AuditRow {
   id: number;
+  run_id: string | null;
   timestamp: string;
   record_id: string;
   merchant_id: string;
@@ -158,7 +159,39 @@ function parseJson<T>(val: unknown, fallback: T): T {
 
 // ── Query functions (async, merchant-filtered) ──────────────────────────────
 
+function getLatestRunId(db: ReturnType<typeof openDb>): string | null {
+  try {
+    const row = db
+      .prepare(
+        "SELECT run_id FROM audit_log WHERE run_id IS NOT NULL ORDER BY id DESC LIMIT 1",
+      )
+      .get() as { run_id: string } | undefined;
+    return row?.run_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getAuditRows(
+  merchantIds?: string[],
+): Promise<AuditRow[]> {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const latestRunId = getLatestRunId(db);
+    const { clause, params } = merchantFilter(merchantIds);
+    if (latestRunId) {
+      const sql = `SELECT * FROM audit_log WHERE run_id = ? ${clause} ORDER BY id ASC`;
+      return db.prepare(sql).all(latestRunId, ...params) as AuditRow[];
+    }
+    const sql = `SELECT * FROM audit_log WHERE 1=1 ${clause} ORDER BY id ASC`;
+    return db.prepare(sql).all(...params) as AuditRow[];
+  } finally {
+    db.close();
+  }
+}
+
+export async function getAllAuditRows(
   merchantIds?: string[],
 ): Promise<AuditRow[]> {
   const db = getDb();
@@ -178,7 +211,13 @@ export async function getRecordsWithOutcomes(
   const db = getDb();
   if (!db) return [];
   try {
+    const latestRunId = getLatestRunId(db);
     const { clause, params } = merchantFilter(merchantIds, "r.");
+    // Join only the latest run's audit entries for dashboard consistency (append-only history)
+    const auditJoin = latestRunId
+      ? `LEFT JOIN audit_log a ON a.record_id = r.record_id AND a.run_id = ?`
+      : `LEFT JOIN audit_log a ON a.record_id = r.record_id`;
+    const joinParams = latestRunId ? [latestRunId, ...params] : params;
     const sql = `
       SELECT
         r.record_id, r.merchant_id, r.customer_id, r.customer_name,
@@ -187,11 +226,11 @@ export async function getRecordsWithOutcomes(
         a.outcome, a.detected_subcategory, a.detection_confidence,
         a.selected_strategy, a.decision_reasoning, a.amount_recovered
       FROM records r
-      LEFT JOIN audit_log a ON a.record_id = r.record_id
+      ${auditJoin}
       WHERE 1=1 ${clause}
       ORDER BY r.record_id ASC
     `;
-    return db.prepare(sql).all(...params) as RecordWithOutcome[];
+    return db.prepare(sql).all(...joinParams) as RecordWithOutcome[];
   } finally {
     db.close();
   }

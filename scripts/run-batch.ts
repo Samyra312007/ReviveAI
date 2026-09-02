@@ -55,9 +55,11 @@ function main() {
 
   runBatch(records, { seed })
     .then(async (result) => {
-      db.prepare("DELETE FROM audit_log").run();
+      // Append-only audit trail (RBI immutability) — tag with run_id instead of deleting
+      const runId = `run_${Date.now()}_${seed}`;
+      const taggedEntries = result.auditEntries.map((e) => ({ ...e, run_id: runId }));
       const writer = new SqliteAuditWriter(db);
-      writer.write(result.auditEntries);
+      writer.write(taggedEntries);
 
       clearVoiceNotifications(db);
       insertVoiceNotifications(db, result.voiceNotifications);

@@ -13,6 +13,7 @@ export type AuditOutcome =
   | "prevented";
 
 export interface AuditLogEntry {
+  run_id?: string | null;
   timestamp: string;
   record_id: string;
   merchant_id: string;
@@ -54,9 +55,13 @@ export interface RecordDecision {
   error?: { type: string; message: string; handled: boolean };
 }
 
-export function toAuditEntry(decision: RecordDecision): AuditLogEntry {
+export function toAuditEntry(
+  decision: RecordDecision,
+  runId?: string,
+): AuditLogEntry {
   const r = decision.record;
   return {
+    run_id: runId ?? null,
     timestamp: new Date().toISOString(),
     record_id: r.record_id,
     merchant_id: r.merchant_id,
@@ -90,13 +95,13 @@ export class SqliteAuditWriter implements AuditWriter {
     this.db = db;
     this.insert = db.prepare(`
       INSERT INTO audit_log (
-        timestamp, record_id, merchant_id, customer_id,
+        run_id, timestamp, record_id, merchant_id, customer_id,
         detected_category, detected_subcategory, detection_confidence,
         selected_strategy, decision_reasoning, guardrail_checks,
         action_taken, api_call, outcome, amount_recovered,
         time_to_recovery_hours, error
       ) VALUES (
-        @timestamp, @record_id, @merchant_id, @customer_id,
+        @run_id, @timestamp, @record_id, @merchant_id, @customer_id,
         @detected_category, @detected_subcategory, @detection_confidence,
         @selected_strategy, @decision_reasoning, @guardrail_checks,
         @action_taken, @api_call, @outcome, @amount_recovered,
@@ -109,7 +114,11 @@ export class SqliteAuditWriter implements AuditWriter {
     const tx = this.db.transaction((all: AuditLogEntry[]) => {
       for (const e of all) {
         this.insert.run({
-          ...e,
+          run_id: e.run_id ?? null,
+          timestamp: e.timestamp,
+          record_id: e.record_id,
+          merchant_id: e.merchant_id,
+          customer_id: e.customer_id,
           detected_category: e.detected_category ?? null,
           detected_subcategory: e.detected_subcategory ?? null,
           detection_confidence: e.detection_confidence ?? null,
@@ -118,6 +127,7 @@ export class SqliteAuditWriter implements AuditWriter {
           guardrail_checks: e.guardrail_checks ? JSON.stringify(e.guardrail_checks) : null,
           action_taken: e.action_taken ?? null,
           api_call: e.api_call ? JSON.stringify(e.api_call) : null,
+          outcome: e.outcome,
           amount_recovered: e.amount_recovered ?? null,
           time_to_recovery_hours: e.time_to_recovery_hours ?? null,
           error: e.error ? JSON.stringify(e.error) : null,
