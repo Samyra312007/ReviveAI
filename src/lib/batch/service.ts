@@ -155,12 +155,29 @@ async function performRun(): Promise<BatchRunResponse> {
     }
 
     let reportWarning: string | undefined;
+    // Dual-write: Postgres reports table (production) + file (local fallback)
+    if (process.env.DATABASE_URL) {
+      try {
+        const { getDrizzle } = await import("@/lib/db/pool");
+        const pgDb = getDrizzle();
+        if (pgDb) {
+          const { reports } = await import("@/lib/db/schema");
+          await pgDb.insert(reports).values({ report: result.report });
+        }
+      } catch (e) {
+        reportWarning =
+          "Postgres report write failed — falling back to file: " +
+          (e instanceof Error ? e.message : String(e));
+      }
+    }
+    // Always keep file for local dev / tests (ephemeral on Vercel but harmless)
     const reportPath = path.join(process.cwd(), "data", "report.json");
     try {
       fs.mkdirSync(path.dirname(reportPath), { recursive: true });
       fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
     } catch {
       reportWarning =
+        reportWarning ??
         "report.json write failed — dashboard report may be stale until the next successful run";
     }
 

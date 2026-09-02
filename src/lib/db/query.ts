@@ -253,6 +253,26 @@ export async function getVoiceRows(
 export async function getReportJson(
   reportPath?: string,
 ): Promise<unknown> {
+  // 1) Try Postgres reports table when DATABASE_URL is set (production)
+  if (process.env.DATABASE_URL) {
+    try {
+      const { getDrizzle } = await import("./pool");
+      const db = getDrizzle();
+      if (db) {
+        const { reports } = await import("./schema");
+        const { desc } = await import("drizzle-orm");
+        const rows = await db
+          .select({ report: reports.report })
+          .from(reports)
+          .orderBy(desc(reports.createdAt))
+          .limit(1);
+        if (rows.length > 0 && rows[0].report) return rows[0].report;
+      }
+    } catch {
+      // fall through to file fallback
+    }
+  }
+  // 2) File fallback (local dev / hackathon demo / tests)
   const resolved = reportPath ?? `${process.cwd()}/data/report.json`;
   if (!fs.existsSync(resolved)) return null;
   try {

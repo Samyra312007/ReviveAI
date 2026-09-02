@@ -54,7 +54,7 @@ function main() {
   const start = Date.now();
 
   runBatch(records, { seed })
-    .then((result) => {
+    .then(async (result) => {
       db.prepare("DELETE FROM audit_log").run();
       const writer = new SqliteAuditWriter(db);
       writer.write(result.auditEntries);
@@ -63,6 +63,22 @@ function main() {
       insertVoiceNotifications(db, result.voiceNotifications);
       insertPromises(db, result.promiseUpdates);
 
+      // Dual-write: Postgres reports table (production) + file (local fallback)
+      if (process.env.DATABASE_URL) {
+        try {
+          const { getDrizzle } = await import("../src/lib/db/pool");
+          const pgDb = getDrizzle();
+          if (pgDb) {
+            const { reports } = await import("../src/lib/db/schema");
+            await pgDb.insert(reports).values({ report: result.report });
+          }
+        } catch (e) {
+          console.warn(
+            "Postgres report write failed — falling back to file:",
+            e instanceof Error ? e.message : String(e),
+          );
+        }
+      }
       const reportPath = path.join(process.cwd(), "data", "report.json");
       fs.mkdirSync(path.dirname(reportPath), { recursive: true });
       fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
