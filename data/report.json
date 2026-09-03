@@ -1,57 +1,57 @@
 {
-  "generated_at": "2026-09-02T02:12:20.142Z",
-  "batch_id": "batch_2026-09-02_seed42",
-  "seed": 42,
+  "generated_at": "2026-09-03T01:35:42.749Z",
+  "batch_id": "batch_2026-09-03_seed677532963",
+  "seed": 677532963,
   "hero": {
-    "recovered_display": "₹5,89,482",
+    "recovered_display": "₹1,65,534",
     "at_risk_display": "₹12,57,691",
-    "recovery_rate_pct": 46.9,
-    "roi_display": "16193.6x"
+    "recovery_rate_pct": 13.2,
+    "roi_display": "8688.4x"
   },
   "recovery": {
     "at_risk_paise": 125769100,
-    "recovered_paise": 58948200,
-    "recovery_rate": 0.469,
-    "avg_time_to_recovery_hours": 16.8,
+    "recovered_paise": 16553400,
+    "recovery_rate": 0.132,
+    "avg_time_to_recovery_hours": 5.5,
     "recoverable_records": 122,
-    "recovered_records": 65
+    "recovered_records": 12
   },
   "recovery_by_category": [
     {
-      "category": "payment_failure",
-      "at_risk_paise": 47121300,
-      "recovered_paise": 24441300,
-      "recovery_rate": 0.519,
-      "avg_time_to_recovery_hours": 14.3,
-      "recoverable_records": 46,
-      "recovered_records": 30
-    },
-    {
       "category": "overdue_invoice",
       "at_risk_paise": 44642000,
-      "recovered_paise": 22806600,
-      "recovery_rate": 0.511,
-      "avg_time_to_recovery_hours": 17.9,
+      "recovered_paise": 15647900,
+      "recovery_rate": 0.351,
+      "avg_time_to_recovery_hours": 2.6,
       "recoverable_records": 20,
-      "recovered_records": 11
-    },
-    {
-      "category": "checkout_abandonment",
-      "at_risk_paise": 27150600,
-      "recovered_paise": 9143400,
-      "recovery_rate": 0.337,
-      "avg_time_to_recovery_hours": 12.3,
-      "recoverable_records": 26,
-      "recovered_records": 10
+      "recovered_records": 7
     },
     {
       "category": "subscription_failure",
       "at_risk_paise": 6855200,
-      "recovered_paise": 2556900,
-      "recovery_rate": 0.373,
-      "avg_time_to_recovery_hours": 24.4,
+      "recovered_paise": 905500,
+      "recovery_rate": 0.132,
+      "avg_time_to_recovery_hours": 9.6,
       "recoverable_records": 30,
-      "recovered_records": 14
+      "recovered_records": 5
+    },
+    {
+      "category": "payment_failure",
+      "at_risk_paise": 47121300,
+      "recovered_paise": 0,
+      "recovery_rate": 0,
+      "avg_time_to_recovery_hours": null,
+      "recoverable_records": 46,
+      "recovered_records": 0
+    },
+    {
+      "category": "checkout_abandonment",
+      "at_risk_paise": 27150600,
+      "recovered_paise": 0,
+      "recovery_rate": 0,
+      "avg_time_to_recovery_hours": null,
+      "recoverable_records": 26,
+      "recovered_records": 0
     },
     {
       "category": "control",
@@ -66,44 +66,44 @@
   "accuracy": {
     "overall": {
       "category": "overall",
-      "tp": 121,
-      "fp": 1,
-      "tn": 23,
-      "fn": 1,
-      "precision": 0.992,
-      "recall": 0.992,
-      "f1": 0.992
+      "tp": 36,
+      "fp": 0,
+      "tn": 24,
+      "fn": 86,
+      "precision": 1,
+      "recall": 0.295,
+      "f1": 0.456
     },
     "by_category": [
       {
         "category": "payment_failure",
-        "tp": 45,
+        "tp": 0,
         "fp": 0,
         "tn": 4,
-        "fn": 1,
-        "precision": 1,
-        "recall": 0.978,
-        "f1": 0.989
+        "fn": 46,
+        "precision": null,
+        "recall": 0,
+        "f1": null
       },
       {
         "category": "checkout_abandonment",
-        "tp": 26,
-        "fp": 1,
-        "tn": 3,
-        "fn": 0,
-        "precision": 0.963,
-        "recall": 1,
-        "f1": 0.981
+        "tp": 0,
+        "fp": 0,
+        "tn": 4,
+        "fn": 26,
+        "precision": null,
+        "recall": 0,
+        "f1": null
       },
       {
         "category": "subscription_failure",
-        "tp": 30,
+        "tp": 16,
         "fp": 0,
         "tn": 0,
-        "fn": 0,
+        "fn": 14,
         "precision": 1,
-        "recall": 1,
-        "f1": 1
+        "recall": 0.533,
+        "f1": 0.695
       },
       {
         "category": "overdue_invoice",
@@ -126,14 +126,172 @@
         "f1": null
       }
     ],
-    "false_positive_rate": 0.042
+    "false_positive_rate": 0
   },
   "guardrails": {
-    "total_blocks": 0,
-    "block_rate": 0,
-    "blocks_by_rule": {}
+    "total_blocks": 14,
+    "block_rate": 9.3,
+    "blocks_by_rule": {
+      "B4": 14
+    }
   },
   "exceptions": [
+    {
+      "record_id": "rec_001",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (271h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_002",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_003",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (218h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_004",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (273h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_005",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (256h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_006",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (215h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_007",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (228h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_008",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (283h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_009",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (244h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_010",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (274h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_011",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (267h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_012",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (226h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_013",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_014",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (222h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_015",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (254h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_016",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (281h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_017",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (237h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_018",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (226h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_019",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (241h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_020",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (252h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_021",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (239h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_022",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_023",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (251h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_024",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (255h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_025",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (251h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_026",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
     {
       "record_id": "rec_027",
       "type": "payment_failure",
@@ -141,40 +299,406 @@
       "outcome": "skipped"
     },
     {
+      "record_id": "rec_028",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (278h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_029",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (264h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_030",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_031",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (267h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_032",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (217h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_033",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (212h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_034",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (254h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_035",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (225h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_036",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (247h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_037",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (247h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_038",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (247h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_039",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (230h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_040",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (213h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
       "record_id": "rec_041",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (243h old, max 72h)",
+      "outcome": "skipped"
     },
     {
       "record_id": "rec_042",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (258h old, max 72h)",
+      "outcome": "skipped"
     },
     {
       "record_id": "rec_043",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (281h old, max 72h)",
+      "outcome": "skipped"
     },
     {
       "record_id": "rec_044",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (268h old, max 72h)",
+      "outcome": "skipped"
     },
     {
       "record_id": "rec_045",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (248h old, max 72h)",
+      "outcome": "skipped"
     },
     {
       "record_id": "rec_046",
       "type": "payment_failure",
-      "reason": "High confidence (0.77) — routing to agent core",
-      "outcome": "escalated"
+      "reason": "Recovery window closed (226h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_047",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (264h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_048",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (249h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_049",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (222h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_050",
+      "type": "payment_failure",
+      "reason": "Recovery window closed (216h old, max 72h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_051",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (267h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_052",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (227h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_053",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (213h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_054",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (310h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_055",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (215h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_056",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (237h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_057",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (214h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_058",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (217h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_059",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (285h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_060",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (213h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_061",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (235h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_062",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (322h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_063",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (226h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_064",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (218h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_065",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (318h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_066",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (249h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_067",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (224h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_068",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (316h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_069",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (229h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_070",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (261h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_071",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (251h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_072",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (247h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_073",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (229h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_074",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (219h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_075",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (222h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_076",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (250h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_077",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (247h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_078",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (225h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_079",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (233h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_080",
+      "type": "checkout_abandonment",
+      "reason": "Recovery window closed (220h old, max 120h)",
+      "outcome": "skipped"
+    },
+    {
+      "record_id": "rec_081",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (15 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_082",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (15 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_083",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (14 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_084",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (13 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_088",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (10 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_090",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (12 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_091",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (14 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_092",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (12 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_093",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (11 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_094",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (16 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_095",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (10 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_097",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (11 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_099",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (10 days)",
+      "outcome": "blocked"
+    },
+    {
+      "record_id": "rec_100",
+      "type": "subscription_failure",
+      "reason": "Beyond 10-day retry window (12 days)",
+      "outcome": "blocked"
     },
     {
       "record_id": "rec_107",
@@ -201,7 +725,7 @@
       "outcome": "escalated"
     },
     {
-      "record_id": "rec_124",
+      "record_id": "rec_125",
       "type": "overdue_invoice",
       "reason": "High confidence (0.9) — routing to agent core",
       "outcome": "escalated"
@@ -227,24 +751,24 @@
   ],
   "operational": {
     "total_records": 150,
-    "records_intervened": 108,
-    "records_skipped": 24,
-    "records_escalated": 14,
-    "records_blocked": 0,
-    "records_prevented": 4,
-    "api_calls_made": 113,
+    "records_intervened": 28,
+    "records_skipped": 97,
+    "records_escalated": 8,
+    "records_blocked": 14,
+    "records_prevented": 3,
+    "api_calls_made": 33,
     "api_errors": 0,
-    "processing_time_ms": 4
+    "processing_time_ms": 2
   },
   "cost_benefit": {
-    "intervention_cost_paise": 3640,
-    "net_recovered_paise": 58944560,
-    "roi_multiple": 16193.6
+    "intervention_cost_paise": 1905,
+    "net_recovered_paise": 16551495,
+    "roi_multiple": 8688.4
   },
   "prevention": {
     "flagged_customers": 4,
     "attempts": 4,
-    "prevented": 4,
-    "protected_amount_paise": 11347800
+    "prevented": 3,
+    "protected_amount_paise": 11283900
   }
 }

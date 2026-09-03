@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getVoiceRows } from "@/lib/db/query";
 import { computeVoiceMetrics } from "@/lib/voice/tracker";
 import { getAuditRows } from "@/lib/db/query";
@@ -7,8 +8,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const rows = await getVoiceRows();
-  const auditRows = await getAuditRows();
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const rows = await getVoiceRows(merchantIds);
+  const auditRows = await getAuditRows(merchantIds);
   const decisions = auditRows.map((row) => ({
     record: { record_id: row.record_id },
     outcome: row.outcome,

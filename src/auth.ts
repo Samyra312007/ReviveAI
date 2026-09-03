@@ -131,12 +131,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // On initial sign-in, merge user fields into the JWT
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "viewer";
         token.merchantIds = (user as { merchantIds?: string[] }).merchantIds ?? [];
+      }
+      // On client-initiated session update (e.g. after connecting a merchant),
+      // adopt the merchant list returned by the client.
+      if (trigger === "update" && session) {
+        const s = session as { merchantIds?: string[] };
+        if (Array.isArray(s.merchantIds)) {
+          token.merchantIds = [...new Set(s.merchantIds)];
+        }
       }
       return token;
     },

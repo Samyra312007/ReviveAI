@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getAuditRows } from "@/lib/db/query";
 
 export const dynamic = "force-dynamic";
@@ -6,7 +7,8 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  let rows = await getAuditRows();
+  const session = await auth();
+  let rows = await getAuditRows(session?.user?.merchantIds);
 
   const outcome = searchParams.get("outcome");
   if (outcome) rows = rows.filter((r) => r.outcome === outcome);

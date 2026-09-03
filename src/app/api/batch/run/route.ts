@@ -24,7 +24,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const { merchantIds, role } = session.user;
+  // Tenant isolation: a user with no merchants must not process the whole
+  // fleet unless they hold an admin/owner role.
+  if ((!merchantIds || merchantIds.length === 0) && !["owner", "admin"].includes(role)) {
+    return NextResponse.json(
+      { error: "Connect a Razorpay account first — see /onboarding" },
+      { status: 400 },
+    );
+  }
+
   await request.json().catch(() => ({}));
-  const result = await executeBatchRun();
+  const result = await executeBatchRun(merchantIds);
   return NextResponse.json(result.body, { status: result.status });
 }

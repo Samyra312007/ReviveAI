@@ -41,16 +41,56 @@ describe("SECURITY REGRESSION — post-remediation guarantees", () => {
       db.prepare("DELETE FROM tuning_proposals").run();
       db.close();
 
+      // The seed is now generated server-side per run (no caller input), so
+      // consecutive runs are different reports — both still succeed.
       const first = await executeBatchRun();
       expect(first.status).toBe(200);
       const rateA = (first.body.report as { hero: { recovery_rate_pct: number } })
         .hero.recovery_rate_pct;
 
       const second = await executeBatchRun();
+      expect(second.status).toBe(200);
       const rateB = (second.body.report as { hero: { recovery_rate_pct: number } })
         .hero.recovery_rate_pct;
 
-      expect(rateA).toBe(rateB);
+      expect(typeof rateA).toBe("number");
+      expect(typeof rateB).toBe("number");
+
+      // Determinism proof: the same seed + same records yield the identical
+      // report — that is what makes the server-side seed authoritative.
+      const { runBatch } = await import("@/lib/agent/core");
+      const { loadBatchDataset, attachPromiseHistories } = await import("@/lib/batch/data-loader");
+      const dataset = loadBatchDataset();
+      expect(dataset).not.toBeNull();
+      const records = attachPromiseHistories(dataset!);
+      const fixedNow = Date.UTC(2026, 7, 25, 6, 0);
+
+      const stripTimestamp = (report: Record<string, unknown>) => {
+        const {
+          generated_at: _g,
+          batch_id: _b,
+          operational: operational,
+          ...rest
+        } = report as {
+          generated_at?: string;
+          batch_id?: string;
+          operational?: Record<string, unknown>;
+        } & Record<string, unknown>;
+        const { processing_time_ms: _p, ...opRest } = operational ?? {};
+        return JSON.stringify({ ...rest, operational: opRest });
+      };
+
+      const r1 = await runBatch(records, { seed: 12345, now: fixedNow });
+      const r2 = await runBatch(records, { seed: 12345, now: fixedNow });
+      expect(stripTimestamp(r1.report as unknown as Record<string, unknown>)).toBe(
+        stripTimestamp(r2.report as unknown as Record<string, unknown>),
+      );
+
+      // A different server seed produces a different report (fresh run).
+      const r3 = await runBatch(records, { seed: 99999, now: fixedNow });
+      expect(stripTimestamp(r3.report as unknown as Record<string, unknown>)).not.toBe(
+        stripTimestamp(r1.report as unknown as Record<string, unknown>),
+      );
     },
   );
 

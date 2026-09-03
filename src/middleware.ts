@@ -17,6 +17,9 @@ export const config = {
     "/voice/:path*",
     "/promises/:path*",
     "/fleet/:path*",
+    "/onboarding/:path*",
+    "/settings/:path*",
+    "/records/:path*",
     "/api/batch/:path*",
     "/api/simulate/:path*",
     "/api/council/:path*",
@@ -26,5 +29,6 @@ export const config = {
     "/api/promises/:path*",
     "/api/voice/:path*",
     "/api/conversations/:path*",
+    "/api/merchants/:path*",
   ],
 };

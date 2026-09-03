@@ -122,6 +122,7 @@ export const voiceNotifications = pgTable(
     customerResponded: boolean("customer_responded").notNull().default(false),
     responseType: text("response_type"),
     responseTimestamp: timestamp("response_timestamp", { withTimezone: true }),
+    providerMessageId: text("provider_message_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     simulated: boolean("simulated").notNull().default(true),
   },
@@ -186,3 +187,32 @@ export const credentialsUsers = pgTable("credentials_users", {
   merchantIds: jsonb("merchant_ids").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Merchants (Razorpay-connected businesses) ───────────────────────────────
+export const merchants = pgTable(
+  "merchants",
+  {
+    merchantId: text("merchant_id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => credentialsUsers.id),
+    businessName: text("business_name").notNull(),
+    razorpayKeyId: text("razorpay_key_id").notNull(),
+    razorpayKeySecretEnc: text("razorpay_key_secret_enc").notNull(),
+    webhookSecretEnc: text("webhook_secret_enc").notNull(),
+    notificationPrefs: jsonb("notification_prefs").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_merchants_user").on(t.userId)],
+);
+
+// ── Notification prefs shape (stored on merchants.notification_prefs) ───────
+export interface NotificationPrefs {
+  whatsappEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  quietHoursStart?: string; // "HH:MM" 24h
+  quietHoursEnd?: string; // "HH:MM" 24h
+  dailyLimit: number;
+}

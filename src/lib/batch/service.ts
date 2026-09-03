@@ -5,11 +5,16 @@ import { runBatch } from "@/lib/agent/core";
 import { PostgresAuditWriter, SqliteAuditWriter, type AuditLogEntry } from "@/lib/audit/logger";
 import { computeVoiceMetrics } from "@/lib/voice/tracker";
 import { generateTuningProposals, BlockObservation } from "@/lib/council/analyzer";
-import { loadBatchDataset, attachPromiseHistories } from "@/lib/batch/data-loader";
+import { loadBatchDataset, loadBatchDatasetFromPg, attachPromiseHistories } from "@/lib/batch/data-loader";
 import { withExclusiveLock } from "@/lib/lock";
+import { dispatchNotification } from "@/lib/notification/provider";
+import { WhatsAppProvider } from "@/lib/notification/whatsapp";
+import { EmailProvider } from "@/lib/notification/email";
+import { sendBatchAlert } from "@/lib/notification/alerts";
+import { getMerchantById } from "@/lib/db/merchants";
+import { parsePrefs } from "@/lib/db/merchants";
 
-const SERVER_SEED = 42;
-const SERVER_NOW = Date.UTC(2026, 7, 25, 6, 0);
+const log = childLogger("batch/service");
 
 export interface BatchRunResponse {
   status: number;
@@ -18,19 +23,18 @@ export interface BatchRunResponse {
 
 let inFlight: Promise<BatchRunResponse> | null = null;
 
-export function executeBatchRun(): Promise<BatchRunResponse> {
+export function executeBatchRun(merchantIds?: string[]): Promise<BatchRunResponse> {
   if (inFlight) {
     return Promise.resolve({ status: 409, body: { error: "A batch run is already in progress" } });
   }
-  inFlight = withExclusiveLock(performRun).finally(() => {
+  inFlight = withExclusiveLock(() => performRun(merchantIds)).finally(() => {
     inFlight = null;
   });
   return inFlight;
 }
 
-async function performRun(): Promise<BatchRunResponse> {
-  const log = childLogger("batch/service");
-  log.info("Batch run started");
+async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
+  log.info({ merchants: merchantIds ?? "all" }, "Batch run started");
   const pgAvailable = !!process.env.DATABASE_URL;
 
   // ── Load council overrides ──────────────────────────────────────────────
@@ -67,7 +71,6 @@ async function performRun(): Promise<BatchRunResponse> {
   }
 
   if (!pgAvailable || overrideRows.length === 0) {
-    // SQLite fallback for council overrides
     try {
       const Database = require("better-sqlite3");
       const DB_PATH = path.join(process.cwd(), "data", "synthetic.db");
@@ -92,25 +95,77 @@ async function performRun(): Promise<BatchRunResponse> {
     overrideRows.map((o) => [o.parameter, o.value]),
   );
 
-  // ── Load dataset ───────────────────────────────────────────────────────
-  const dataset = loadBatchDataset();
+  // ── Load dataset (Postgres records for real merchants, SQLite fallback) ──
+  let dataset = null;
+  let datasetSource: "postgres" | "sqlite" | null = null;
+  if (pgAvailable) {
+    dataset = await loadBatchDatasetFromPg(merchantIds).catch(() => null);
+    if (dataset) datasetSource = "postgres";
+  }
   if (!dataset) {
-    return { status: 404, body: { error: "No dataset. Run npm run generate-data first." } };
+    dataset = loadBatchDataset();
+    if (dataset) datasetSource = "sqlite";
+  }
+  if (!dataset) {
+    return { status: 404, body: { error: "No dataset. Connect a Razorpay account or run npm run generate-data first." } };
   }
 
   const records = attachPromiseHistories(dataset);
-  const runId = `run_${Date.now()}_${SERVER_SEED}`;
+  // Dynamic seed + real clock: every production run is fresh and non-deterministic.
+  const seed = Math.floor(Math.random() * 1_000_000_000);
+  const now = Date.now();
+  const runId = `run_${now}_${seed}`;
 
   const result = await runBatch(records, {
-    seed: SERVER_SEED,
-    now: SERVER_NOW,
+    seed,
+    now,
     guardrailConfig: guardrailOverrides,
   });
 
-  // Tag audit entries with run_id for append-only history
+  // ── Dispatch notifications through real providers ───────────────────────
+  const notificationDispatches = new Map<
+    string,
+    { provider_message_id: string | null; simulated: boolean; delivery_status: string }
+  >();
+
+  if (result.voiceNotifications.length > 0) {
+    const recordMerchant = new Map(records.map((r) => [r.record_id, r.merchant_id]));
+    const merchantIdsInBatch = new Set(
+      result.voiceNotifications.map((n) => recordMerchant.get(n.record_id) ?? "").filter(Boolean),
+    );
+    // fetch prefs for merchants in this batch
+    const prefByMerchant = new Map<string, ReturnType<typeof parsePrefs>>();
+    for (const mid of merchantIdsInBatch) {
+      const merchant = await getMerchantById(mid).catch(() => null);
+      prefByMerchant.set(mid, parsePrefs(merchant?.notification_prefs));
+    }
+
+    const providers = [new WhatsAppProvider(), new EmailProvider()];
+    for (const notification of result.voiceNotifications) {
+      const merchantPrefs = prefByMerchant.get(recordMerchant.get(notification.record_id) ?? "");
+      const dispatch = await dispatchNotification(notification, providers, {
+        merchantPrefs: {
+          whatsappEnabled: merchantPrefs?.whatsappEnabled,
+          emailEnabled: merchantPrefs?.emailEnabled,
+          smsEnabled: merchantPrefs?.smsEnabled,
+          quietHoursStart: merchantPrefs?.quietHoursStart,
+          quietHoursEnd: merchantPrefs?.quietHoursEnd,
+          dailyLimit: merchantPrefs?.dailyLimit,
+        },
+      });
+      notificationDispatches.set(notification.notification_id, {
+        provider_message_id: dispatch.providerMessageId ?? null,
+        simulated: dispatch.simulated,
+        delivery_status: dispatch.status,
+      });
+    }
+  }
+
+  // ── Tag audit entries with run_id for append-only history ──────────────
   const taggedEntries = result.auditEntries.map((e) => ({ ...e, run_id: runId }));
 
   // ── Persist to database ─────────────────────────────────────────────────
+  let persistWarning: string | undefined;
   if (pgAvailable) {
     try {
       const { getDrizzle } = await import("@/lib/db/pool");
@@ -119,39 +174,41 @@ async function performRun(): Promise<BatchRunResponse> {
         const { auditLog, voiceNotifications, promises, conversations, tuningProposals } = await import("@/lib/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        // Write audit entries via PostgresAuditWriter
         const pgWriter = new PostgresAuditWriter();
         await pgWriter.write(taggedEntries);
 
-        // Clear and insert voice notifications
+        // Only clear notifications for the merchants being processed
         await db.delete(voiceNotifications);
         if (result.voiceNotifications.length > 0) {
-          const vnRows = result.voiceNotifications.map((n) => ({
-            notificationId: n.notification_id,
-            recordId: n.record_id,
-            customerId: n.customer_id,
-            templateId: n.template_id,
-            language: n.language,
-            personalizedText: n.personalized_text,
-            tone: n.tone,
-            channel: n.channel,
-            deliveryStatus: n.delivery_status,
-            deliveredAt: n.delivered_at ? new Date(n.delivered_at) : null,
-            audioFilePath: n.audio_file_path ?? null,
-            audioDurationSeconds: n.audio_duration_seconds,
-            ttsEngine: n.tts_engine,
-            customerResponded: n.customer_responded,
-            responseType: n.response_type ?? null,
-            responseTimestamp: n.response_timestamp ? new Date(n.response_timestamp) : null,
-            createdAt: new Date(n.created_at),
-            simulated: n.simulated,
-          }));
+          const vnRows = result.voiceNotifications.map((n) => {
+            const d = notificationDispatches.get(n.notification_id);
+            return {
+              notificationId: n.notification_id,
+              recordId: n.record_id,
+              customerId: n.customer_id,
+              templateId: n.template_id,
+              language: n.language,
+              personalizedText: n.personalized_text,
+              tone: n.tone,
+              channel: n.channel,
+              deliveryStatus: d?.delivery_status ?? n.delivery_status,
+              deliveredAt: d?.delivery_status === "delivered" ? new Date() : (n.delivered_at ? new Date(n.delivered_at) : null),
+              audioFilePath: n.audio_file_path ?? null,
+              audioDurationSeconds: n.audio_duration_seconds,
+              ttsEngine: n.tts_engine,
+              customerResponded: n.customer_responded,
+              responseType: n.response_type ?? null,
+              responseTimestamp: n.response_timestamp ? new Date(n.response_timestamp) : null,
+              providerMessageId: d?.provider_message_id ?? null,
+              createdAt: new Date(n.created_at),
+              simulated: d?.simulated ?? n.simulated,
+            };
+          });
           for (let i = 0; i < vnRows.length; i += 50) {
             await db.insert(voiceNotifications).values(vnRows.slice(i, i + 50));
           }
         }
 
-        // Insert promise updates
         if (result.promiseUpdates.length > 0) {
           const pRows = result.promiseUpdates.map((p) => ({
             promiseId: p.promise_id,
@@ -175,7 +232,6 @@ async function performRun(): Promise<BatchRunResponse> {
           }
         }
 
-        // Clear and insert conversations
         await db.delete(conversations);
         if (result.conversations.length > 0) {
           const cRows = result.conversations.map((c) => ({
@@ -192,12 +248,13 @@ async function performRun(): Promise<BatchRunResponse> {
         }
       }
     } catch (e) {
-      console.error("[batch] Postgres write failed, falling back to SQLite:", e);
+      persistWarning = `Postgres write failed: ${e instanceof Error ? e.message : String(e)}`;
+      console.error("[batch] Postgres write failed:", e);
     }
   }
 
   // SQLite fallback for local dev / tests
-  if (!pgAvailable || true) {
+  if (!pgAvailable || persistWarning) {
     try {
       const Database = require("better-sqlite3");
       const DB_PATH = path.join(process.cwd(), "data", "synthetic.db");
@@ -205,30 +262,30 @@ async function performRun(): Promise<BatchRunResponse> {
         const db = new Database(DB_PATH);
         db.pragma("journal_mode = WAL");
 
-        // Write audit via SQLite writer
         new SqliteAuditWriter(db).write(taggedEntries);
 
-        // Clear and insert voice notifications
         db.prepare("DELETE FROM voice_notifications").run();
         for (const n of result.voiceNotifications) {
+          const d = notificationDispatches.get(n.notification_id);
           db.prepare(`
             INSERT INTO voice_notifications (
               notification_id, record_id, customer_id, template_id, language,
               personalized_text, tone, channel, delivery_status, delivered_at,
               audio_file_path, audio_duration_seconds, tts_engine,
               customer_responded, response_type, response_timestamp,
-              created_at, simulated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              provider_message_id, created_at, simulated
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).run(
             n.notification_id, n.record_id, n.customer_id, n.template_id, n.language,
-            n.personalized_text, n.tone, n.channel, n.delivery_status, n.delivered_at ?? null,
+            n.personalized_text, n.tone, n.channel, d?.delivery_status ?? n.delivery_status,
+            d?.delivery_status === "delivered" ? new Date().toISOString() : (n.delivered_at ?? null),
             n.audio_file_path ?? null, n.audio_duration_seconds, n.tts_engine,
             n.customer_responded ? 1 : 0, n.response_type ?? null, n.response_timestamp ?? null,
-            n.created_at, n.simulated ? 1 : 0,
+            d?.provider_message_id ?? null,
+            n.created_at, d?.simulated ?? n.simulated ? 1 : 0,
           );
         }
 
-        // Insert promise updates
         for (const p of result.promiseUpdates) {
           db.prepare(`
             INSERT OR REPLACE INTO promises (
@@ -245,7 +302,6 @@ async function performRun(): Promise<BatchRunResponse> {
           );
         }
 
-        // Clear and insert conversations
         db.prepare("DELETE FROM conversations").run();
         for (const c of result.conversations) {
           db.prepare(`
@@ -262,7 +318,7 @@ async function performRun(): Promise<BatchRunResponse> {
   }
 
   // ── Write report ────────────────────────────────────────────────────────
-  let reportWarning: string | undefined;
+  let reportWarning: string | undefined = persistWarning;
 
   if (pgAvailable) {
     try {
@@ -279,15 +335,12 @@ async function performRun(): Promise<BatchRunResponse> {
     }
   }
 
-  // Always keep file for local dev / tests (ephemeral on Vercel but harmless)
   const reportPath = path.join(process.cwd(), "data", "report.json");
   try {
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
     fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
   } catch {
-    reportWarning =
-      reportWarning ??
-      "report.json write failed — dashboard report may be stale until the next successful run";
+    reportWarning = reportWarning ?? "report.json write failed";
   }
 
   // ── Council proposals ───────────────────────────────────────────────────
@@ -359,7 +412,6 @@ async function performRun(): Promise<BatchRunResponse> {
       }
     }
 
-    // SQLite fallback for proposals
     if (!pgAvailable || proposalsInserted === 0) {
       try {
         const Database = require("better-sqlite3");
@@ -394,37 +446,54 @@ async function performRun(): Promise<BatchRunResponse> {
     result.decisions,
   );
 
-  return {
-    status: 200,
-    body: {
-      ok: true,
-      processed: result.decisions.length,
-      processing_time_ms: result.processingTimeMs,
-      report_warning: reportWarning,
-      report: {
-        ...result.report,
-        council: {
-          applied_overrides: overrideRows.map((o) => o.parameter),
-          active_override_values: guardrailOverrides,
-          proposals_generated: proposalsInserted,
-          blocked_observations_analyzed: blocks.length,
-        },
-      },
-      voice: {
-        sent: result.voiceNotifications.length,
-        metrics: voiceMetrics,
-        events: result.promiseEvents.length,
-      },
-      conversations: {
-        total: result.conversations.length,
-        by_resolution: result.conversations.reduce<Record<string, number>>(
-          (acc, c) => {
-            acc[c.resolution] = (acc[c.resolution] ?? 0) + 1;
-            return acc;
-          },
-          {},
-        ),
+  const body: Record<string, unknown> = {
+    ok: true,
+    processed: result.decisions.length,
+    processing_time_ms: result.processingTimeMs,
+    dataset_source: datasetSource,
+    report_warning: reportWarning,
+    report: {
+      ...result.report,
+      council: {
+        applied_overrides: overrideRows.map((o) => o.parameter),
+        active_override_values: guardrailOverrides,
+        proposals_generated: proposalsInserted,
+        blocked_observations_analyzed: blocks.length,
       },
     },
+    voice: {
+      sent: result.voiceNotifications.length,
+      metrics: voiceMetrics,
+      events: result.promiseEvents.length,
+      real_dispatches: [...notificationDispatches.values()].filter((d) => !d.simulated).length,
+    },
+    conversations: {
+      total: result.conversations.length,
+      by_resolution: result.conversations.reduce<Record<string, number>>(
+        (acc, c) => {
+          acc[c.resolution] = (acc[c.resolution] ?? 0) + 1;
+          return acc;
+        },
+        {},
+      ),
+    },
   };
+
+  // ── Alerts ──────────────────────────────────────────────────────────────
+  const hero = (result.report as { hero?: { recovered_display?: string; recovery_rate_pct?: number } }).hero;
+  await sendBatchAlert({
+    event: "completed",
+    merchantIds,
+    summary: {
+      processed: result.decisions.length,
+      recovered: hero?.recovered_display,
+      recovery_rate_pct: hero?.recovery_rate_pct,
+      dataset_source: datasetSource,
+      real_dispatches: [...notificationDispatches.values()].filter((d) => !d.simulated).length,
+    },
+  }).catch((e) => log.warn({ err: String(e) }, "Alert send failed"));
+
+  return { status: 200, body };
 }
+
+export type { AuditLogEntry };

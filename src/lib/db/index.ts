@@ -102,8 +102,21 @@ export function initSchema(db: Database.Database): void {
       customer_responded INTEGER NOT NULL DEFAULT 0,
       response_type TEXT,
       response_timestamp TEXT,
+      provider_message_id TEXT,
       created_at TEXT NOT NULL,
       simulated INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS merchants (
+      merchant_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      business_name TEXT NOT NULL,
+      razorpay_key_id TEXT NOT NULL,
+      razorpay_key_secret_enc TEXT NOT NULL,
+      webhook_secret_enc TEXT NOT NULL,
+      notification_prefs TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS tuning_proposals (
