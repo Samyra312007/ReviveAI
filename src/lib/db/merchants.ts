@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { NotificationPrefs } from "@/lib/db/schema";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
@@ -256,7 +257,6 @@ export function updateMerchantPrefsSqlite(merchantId: string, prefs: Notificatio
 }
 
 function getSqlite() {
-  const fs = require("node:fs") as typeof import("node:fs");
   const DB_PATH = `${process.cwd()}/data/synthetic.db`;
   if (!fs.existsSync(DB_PATH)) return null;
   try {

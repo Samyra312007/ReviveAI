@@ -72,6 +72,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
 
   if (!pgAvailable || overrideRows.length === 0) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Database = require("better-sqlite3");
       const DB_PATH = path.join(process.cwd(), "data", "synthetic.db");
       if (fs.existsSync(DB_PATH)) {
@@ -256,6 +257,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
   // SQLite fallback for local dev / tests
   if (!pgAvailable || persistWarning) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Database = require("better-sqlite3");
       const DB_PATH = path.join(process.cwd(), "data", "synthetic.db");
       if (fs.existsSync(DB_PATH)) {
@@ -414,6 +416,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
 
     if (!pgAvailable || proposalsInserted === 0) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const Database = require("better-sqlite3");
         const DB_PATH = path.join(process.cwd(), "data", "synthetic.db");
         if (fs.existsSync(DB_PATH)) {
