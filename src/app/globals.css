@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+/* Keep every page fitting the viewport width: no horizontal scrollbars,
+   even when a section or canvas temporarily exceeds the container. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Side-drawer navigation animations */
+@keyframes rev-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes rev-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer-panel-anim {
+  animation: rev-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-backdrop-anim {
+  animation: rev-fade-in 180ms ease-out;
+}
+
+/* Custom scrollbar inside the hamburger side drawer */
+.drawer-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(63 63 70 / 0.9) transparent;
+}
+.drawer-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.drawer-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.drawer-scroll::-webkit-scrollbar-thumb {
+  background: rgb(63 63 70 / 0.9);
+  border-radius: 9999px;
+}
+.drawer-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(82 82 91);
+}
+.drawer-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}

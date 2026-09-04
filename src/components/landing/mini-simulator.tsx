@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { GatedLink } from "@/components/landing/gated-link";
 
 export function MiniSimulator() {
   const [cap, setCap] = useState(50000);
@@ -52,7 +53,8 @@ export function MiniSimulator() {
         </div>
       </div>
       <p className="mt-3 text-center text-xs text-zinc-500">
-        <a href="/simulator" className="text-emerald-400 hover:underline">Open full simulator →</a> — zero DB writes, deterministic
+        <GatedLink href="/simulator" className="text-emerald-400 hover:underline">Open full simulator →</GatedLink>{" "}
+        (zero DB writes, deterministic)
       </p>
     </div>
   );
