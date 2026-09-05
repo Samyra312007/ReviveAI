@@ -21,7 +21,7 @@ function formatCr(paise: number): string {
 export default async function FleetPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
-  const report = (await getReportJson()) as ReportLike | null;
+  const report = (await getReportJson(undefined, merchantIds)) as ReportLike | null;
   const rows = (await getRecordsWithOutcomes(merchantIds)).map((r) => ({
     merchant_id: r.merchant_id,
     type: r.type,
@@ -30,11 +30,14 @@ export default async function FleetPage() {
     outcome: r.outcome,
     amount_recovered: r.amount_recovered,
   }));
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (rows.length === 0) {
     return (
       <>
-        <PageHeader title="Multi-Merchant Fleet View" description="Recovery performance and guardrail fairness across the merchant fleet." />
+        <PageHeader title="Multi-Merchant Fleet View" description="Recovery performance and guardrail fairness across the merchant fleet." badge={dataBadge} />
         <EmptyState message="No dataset. Run `npm run generate-data` first." />
       </>
     );
@@ -47,6 +50,7 @@ export default async function FleetPage() {
       <PageHeader
         title="Multi-Merchant Fleet View"
         description="Per-merchant recovery economics with a cross-fleet guardrail fairness check: no merchant segment gets disproportionately blocked."
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

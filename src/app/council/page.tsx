@@ -33,15 +33,21 @@ const PARAM_LABELS: Record<string, string> = {
 };
 
 export default async function CouncilPage() {
-  const { proposals, overrides } = await getCouncilState();
+  const session = await auth();
+  const merchantIds = session?.user?.merchantIds;
+  const { proposals, overrides } = await getCouncilState(merchantIds);
   const pending = proposals.filter((p) => p.status === "pending");
   const decided = proposals.filter((p) => p.status !== "pending");
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   return (
     <>
       <PageHeader
         title="Guardrail Tuning Council"
         description="The agent audits its own guardrail blocks after every run and proposes adjustments where it believes safety rules are too tight. A human approves or rejects; the agent cannot change its own boundaries. Approved overrides apply from the next batch run and are fully audited."
+        badge={dataBadge}
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">

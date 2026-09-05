@@ -1,0 +1,1 @@
+ALTER TABLE "reports" ADD COLUMN "merchant_ids" jsonb DEFAULT '[]'::jsonb;

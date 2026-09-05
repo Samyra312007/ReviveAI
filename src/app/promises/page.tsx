@@ -22,11 +22,14 @@ export default async function PromisesPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
   const rows = await getPromiseRows(merchantIds);
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (rows.length === 0) {
     return (
       <>
-        <PageHeader title="Promise-to-Pay Tracker" description="Customer payment promises, tracked and enforced." />
+        <PageHeader title="Promise-to-Pay Tracker" description="Customer payment promises, tracked and enforced." badge={dataBadge} />
         <EmptyState message="No promises in the dataset yet. Regenerate data via `npm run generate-data`." />
       </>
     );
@@ -51,6 +54,7 @@ export default async function PromisesPage() {
       <PageHeader
         title="Promise-to-Pay Tracker"
         description="Turning informal commitments like 'I'll pay by Friday' into tracked, followable, escalatable revenue."
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -23,7 +23,7 @@ export interface BatchDataset {
   promisesByRecordId: Map<string, unknown>;
 }
 
-export function loadBatchDataset(dbPath?: string): BatchDataset | null {
+export function loadBatchDataset(dbPath?: string, merchantIds?: string[]): BatchDataset | null {
   const resolved = dbPath ?? path.join(process.cwd(), "data", "synthetic.db");
   if (!fs.existsSync(resolved)) return null;
 
@@ -31,9 +31,17 @@ export function loadBatchDataset(dbPath?: string): BatchDataset | null {
   try {
     initSchema(db);
 
-    const rows = db
-      .prepare("SELECT * FROM records ORDER BY record_id")
-      .all() as RecordRow[];
+    let rows: RecordRow[];
+    if (merchantIds?.length) {
+      const ph = merchantIds.map(() => "?").join(", ");
+      rows = db
+        .prepare(`SELECT * FROM records WHERE merchant_id IN (${ph}) ORDER BY record_id`)
+        .all(...merchantIds) as RecordRow[];
+    } else {
+      rows = db
+        .prepare("SELECT * FROM records ORDER BY record_id")
+        .all() as RecordRow[];
+    }
     if (rows.length === 0) return null;
 
     const records = rows.map((row) => ({
@@ -45,13 +53,17 @@ export function loadBatchDataset(dbPath?: string): BatchDataset | null {
       ),
     })) as unknown as SyntheticRecord[];
 
-    const promiseRows = db
-      .prepare("SELECT * FROM promises")
-      .all() as {
-      [key: string]: unknown;
-      record_id: string;
-      reminders_sent: string;
-    }[];
+    let promiseRows: { [key: string]: unknown; record_id: string; reminders_sent: string }[];
+    if (merchantIds?.length) {
+      const ph = merchantIds.map(() => "?").join(", ");
+      promiseRows = db
+        .prepare(`SELECT p.* FROM promises p INNER JOIN records r ON r.record_id = p.record_id WHERE r.merchant_id IN (${ph})`)
+        .all(...merchantIds) as typeof promiseRows;
+    } else {
+      promiseRows = db
+        .prepare("SELECT * FROM promises")
+        .all() as typeof promiseRows;
+    }
     const promisesByRecordId = new Map<string, unknown>();
     for (const p of promiseRows) {
       promisesByRecordId.set(p.record_id, {

@@ -177,6 +177,7 @@ export const conversations = pgTable("conversations", {
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   report: jsonb("report").notNull(),
+  merchantIds: jsonb("merchant_ids").default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

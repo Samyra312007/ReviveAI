@@ -46,12 +46,16 @@ interface Report {
 
 export default async function ResultsPage() {
   const session = await auth();
-  const report = (await getReportJson()) as Report | null;
+  const merchantIds = session?.user?.merchantIds;
+  const report = (await getReportJson(undefined, merchantIds)) as Report | null;
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (!report) {
     return (
       <>
-        <PageHeader title="Recovery Results" description="Measured money recovered across the batch." />
+        <PageHeader title="Recovery Results" description="Measured money recovered across the batch." badge={dataBadge} />
         <EmptyState message="No results yet. Run the batch via `npm run run-batch` or the Dashboard." />
       </>
     );
@@ -64,6 +68,7 @@ export default async function ResultsPage() {
       <PageHeader
         title="Recovery Results"
         description="Honest measurement against ground truth, all 150 records accounted for, including failures."
+        badge={dataBadge}
       />
 
       <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent p-8">

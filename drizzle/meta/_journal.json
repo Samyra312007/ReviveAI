@@ -15,6 +15,13 @@
       "when": 1788586536284,
       "tag": "0001_pink_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788613110422,
+      "tag": "0002_tiny_chamber",
+      "breakpoints": true
     }
   ]
 }

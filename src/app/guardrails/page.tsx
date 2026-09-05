@@ -40,12 +40,15 @@ interface GuardrailCheck {
 export default async function GuardrailsPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
-  const report = (await getReportJson()) as Report | null;
+  const report = (await getReportJson(undefined, merchantIds)) as Report | null;
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (!report) {
     return (
       <>
-        <PageHeader title="Guardrail Report" description="Safety rules that bound the agent's actions." />
+        <PageHeader title="Guardrail Report" description="Safety rules that bound the agent's actions." badge={dataBadge} />
         <EmptyState message="No results yet. Run the batch via `npm run run-batch`." />
       </>
     );
@@ -69,6 +72,7 @@ export default async function GuardrailsPage() {
       <PageHeader
         title="Guardrail Report"
         description={`The agent ran ${totalChecks.toLocaleString("en-IN")} guardrail checks. ${totalPassed.toLocaleString("en-IN")} passed, ${Object.values(byRule).reduce((a, b) => a + b, 0)} fired.`}
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

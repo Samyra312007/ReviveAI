@@ -275,7 +275,7 @@ function getSqlite() {
 export async function getMerchantsForUser(userId: string): Promise<MerchantPublic[]> {
   if (process.env.DATABASE_URL) {
     const r = await getMerchantsForUserPg(userId).catch(() => null);
-    if (r) return r;
+    if (r && r.length > 0) return r;
   }
   return getMerchantsForUserSqlite(userId);
 }
@@ -305,7 +305,7 @@ export async function getMerchantById(merchantId: string): Promise<MerchantRow |
 export async function getAllMerchants(): Promise<MerchantRow[]> {
   if (process.env.DATABASE_URL) {
     const r = await getAllMerchantsPg().catch(() => null);
-    if (r) return r;
+    if (r && r.length > 0) return r;
   }
   return getAllMerchantsSqlite();
 }

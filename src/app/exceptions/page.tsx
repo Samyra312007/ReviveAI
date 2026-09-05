@@ -17,12 +17,15 @@ interface Report {
 export default async function ExceptionsPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
-  const report = (await getReportJson()) as Report | null;
+  const report = (await getReportJson(undefined, merchantIds)) as Report | null;
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (!report) {
     return (
       <>
-        <PageHeader title="Exception Report" description="Records the agent couldn't handle, and exactly why." />
+        <PageHeader title="Exception Report" description="Records the agent couldn't handle, and exactly why." badge={dataBadge} />
         <EmptyState message="No results yet. Run the batch via `npm run run-batch`." />
       </>
     );
@@ -39,6 +42,7 @@ export default async function ExceptionsPage() {
       <PageHeader
         title="Exception Report"
         description="Honest reporting: these records were skipped, escalated, or blocked, with the exact reason. No cherry-picking."
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

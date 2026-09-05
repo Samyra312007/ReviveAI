@@ -39,8 +39,11 @@ const PAGES = [
 export default async function DashboardPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
-  const report = (await getReportJson()) as Report | null;
+  const report = (await getReportJson(undefined, merchantIds)) as Report | null;
   const records = await getRecordsWithOutcomes(merchantIds);
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   if (!report) {
     return (
@@ -48,6 +51,7 @@ export default async function DashboardPage() {
         <PageHeader
           title="ReviveAI Control Center"
           description="Autonomous revenue recovery agent: detect → diagnose → intervene → measure."
+          badge={dataBadge}
         />
         <EmptyState message="No batch results yet. Run the batch from below or via `npm run run-batch`." />
         <div className="mt-6">
@@ -64,6 +68,7 @@ export default async function DashboardPage() {
       <PageHeader
         title="ReviveAI Control Center"
         description="Autonomous revenue recovery agent: detect → diagnose → intervene → measure."
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

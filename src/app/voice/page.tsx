@@ -13,6 +13,9 @@ export default async function VoicePage() {
   const merchantIds = session?.user?.merchantIds;
   const rows = await getVoiceRows(merchantIds);
   const auditRows = await getAuditRows(merchantIds);
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   const metrics = computeVoiceMetrics(
     rows.map((r) => ({
@@ -46,6 +49,7 @@ export default async function VoicePage() {
       <PageHeader
         title="Voice Notifications: Hinglish Recovery"
         description="Personalized Hinglish voice nudges with simulated TTS and WhatsApp delivery. Gated by opt-in (F4), weekly limits (F1), and 09:00–20:00 IST windows (F2)."
+        badge={dataBadge}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

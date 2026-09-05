@@ -9,12 +9,16 @@ export default async function RecordsPage() {
   const session = await auth();
   const merchantIds = session?.user?.merchantIds;
   const rows = await getRecordsWithOutcomes(merchantIds);
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
 
   return (
     <>
       <PageHeader
         title="Records"
         description="Every ingested failure with its latest decision. Click a record for the full drill-down."
+        badge={dataBadge}
       />
       {rows.length === 0 ? (
         <EmptyState message="No records yet. Connect a Razorpay account in onboarding, or run `npm run generate-data`." />

@@ -24,11 +24,15 @@ export default async function TimelinePage() {
       },
     ]),
   );
+  const dataBadge = merchantIds?.length
+    ? { label: "Live Data", variant: "connected" as const }
+    : { label: "Demo Data", variant: "demo" as const };
   return (
     <>
       <PageHeader
         title="Decision Timeline"
         description="Every decision the agent made, in processing order. Click any entry for full reasoning, guardrail checks, API calls, and customer conversations."
+        badge={dataBadge}
       />
       <Timeline entries={entries} conversationMap={conversationMap} />
     </>

@@ -105,7 +105,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
     if (dataset) datasetSource = "postgres";
   }
   if (!dataset) {
-    dataset = loadBatchDataset();
+    dataset = loadBatchDataset(undefined, merchantIds);
     if (dataset) datasetSource = "sqlite";
   }
   if (!dataset) {
@@ -351,7 +351,10 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
       const pgDb = getDrizzle();
       if (pgDb) {
         const { reports } = await import("@/lib/db/schema");
-        await pgDb.insert(reports).values({ report: result.report });
+        await pgDb.insert(reports).values({
+          report: result.report,
+          merchantIds: merchantIds ?? [],
+        });
       }
     } catch (e) {
       reportWarning =
@@ -363,7 +366,8 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
   const reportPath = path.join(process.cwd(), "data", "report.json");
   try {
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-    fs.writeFileSync(reportPath, JSON.stringify(result.report, null, 2));
+    const reportWithMeta = { ...result.report, _merchant_ids: merchantIds ?? [] };
+    fs.writeFileSync(reportPath, JSON.stringify(reportWithMeta, null, 2));
   } catch {
     reportWarning = reportWarning ?? "report.json write failed";
   }

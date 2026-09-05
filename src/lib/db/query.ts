@@ -450,24 +450,51 @@ export async function getVoiceRows(
   }
 }
 
-export async function getReportJson(reportPath?: string): Promise<unknown> {
+export async function getReportJson(reportPath?: string, merchantIds?: string[]): Promise<unknown> {
   if (pgAvailable()) {
     const r = await tryPg(async () => {
       const { getDrizzle } = await import("./pool");
       const db = getDrizzle();
       if (!db) return null;
       const { reports } = await import("./schema");
-      const { desc } = await import("drizzle-orm");
+      const { desc, sql, and } = await import("drizzle-orm");
+
+      const conds = [];
+      // When merchant IDs are provided, filter to reports generated for those merchants.
+      // This ensures a connected merchant only sees their own report data, never demo data.
+      // Use @> (contains) with a JSONB array for each merchant ID, joined with OR.
+      if (merchantIds?.length) {
+        const orParts = merchantIds.map((id) =>
+          sql`${reports.merchantIds} @> ${JSON.stringify([id])}::jsonb`
+        );
+        conds.push(sql`(${sql.join(orParts, sql` OR `)})`);
+      }
+
       const rows = await db.select({ report: reports.report }).from(reports)
+        .where(conds.length ? and(...conds) : undefined)
         .orderBy(desc(reports.createdAt)).limit(1);
       return rows.length > 0 ? rows[0].report : null;
     });
     if (r !== null) return r;
   }
+
+  // SQLite / file fallback
   const resolved = reportPath ?? `${process.cwd()}/data/report.json`;
   if (!fs.existsSync(resolved)) return null;
   try {
-    return JSON.parse(fs.readFileSync(resolved, "utf-8"));
+    const raw = JSON.parse(fs.readFileSync(resolved, "utf-8"));
+
+    // If merchant IDs are provided and the JSON has _merchant_ids, filter by overlap
+    if (merchantIds?.length && Array.isArray(raw._merchant_ids) && raw._merchant_ids.length > 0) {
+      const hasOverlap = merchantIds.some((id) => raw._merchant_ids.includes(id));
+      if (!hasOverlap) return null;
+    }
+
+    // Strip the internal _merchant_ids before returning to callers
+    const report = Object.fromEntries(
+      Object.entries(raw).filter(([k]) => k !== "_merchant_ids")
+    );
+    return report;
   } catch {
     return null;
   }

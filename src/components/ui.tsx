@@ -60,13 +60,28 @@ export function ProgressBar({ pct, color = "bg-emerald-500" }: { pct: number; co
 export function PageHeader({
   title,
   description,
+  badge,
 }: {
   title: string;
   description: string;
+  badge?: { label: string; variant?: "demo" | "connected" };
 }) {
   return (
     <header className="mb-8">
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        {badge && (
+          <span
+            className={
+              badge.variant === "connected"
+                ? "rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20"
+                : "rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400 border border-amber-500/20"
+            }
+          >
+            {badge.label}
+          </span>
+        )}
+      </div>
       <p className="mt-1 max-w-2xl text-sm text-zinc-500">{description}</p>
     </header>
   );
