@@ -21,7 +21,6 @@ export function CountUp({
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplay(Math.round(value * eased));
       if (p < 1) raf.current = requestAnimationFrame(tick);
     };

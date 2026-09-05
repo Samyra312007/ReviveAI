@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { VOICE_TEMPLATES, renderTemplate, VoiceTemplate } from "@/lib/voice/templates";
 
 const TONE_STYLES: Record<string, string> = {
@@ -8,6 +14,16 @@ const TONE_STYLES: Record<string, string> = {
   urgent: "border-amber-500/30 bg-amber-500/10 text-amber-400",
   formal: "border-sky-500/30 bg-sky-500/10 text-sky-400",
 };
+
+/**
+ * Feature detection for the Web Speech API. Evaluated on the client only
+ * (server snapshot assumes support so the initial HTML never shows the
+ * unsupported banner), without synchronously calling setState in an effect.
+ */
+const subscribeToSpeechSupport = () => () => {};
+const getSpeechSupport = () =>
+  typeof window !== "undefined" && "speechSynthesis" in window;
+const getSpeechSupportServer = () => true;
 
 /** Pick the best available voice for an English/Hinglish line. */
 function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
@@ -21,14 +37,15 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null 
 
 export function VoicePreview() {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [speechSupported, setSpeechSupported] = useState(true);
+  const speechSupported = useSyncExternalStore(
+    subscribeToSpeechSupport,
+    getSpeechSupport,
+    getSpeechSupportServer,
+  );
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setSpeechSupported(false);
-      return;
-    }
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const synth = window.speechSynthesis;
     // Chrome loads voices asynchronously; keep the freshest list.
     const loadVoices = () => {
