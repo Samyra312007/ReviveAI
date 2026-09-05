@@ -7,7 +7,10 @@ import {
   timestamp,
   jsonb,
   serial,
+  uuid,
+  bigint,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 // ── Records (150 synthetic rows) ───────────────────────────────────────────
@@ -176,6 +179,57 @@ export const reports = pgTable("reports", {
   report: jsonb("report").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Auth.js pg-adapter tables ───────────────────────────────────────────────
+// Required by @auth/pg-adapter (Google OAuth + session storage). Column names
+// must match the adapter's queries exactly (camelCase quoted, as written).
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name"),
+  email: text("email").notNull().unique(),
+  emailVerified: timestamp("emailVerified", { withTimezone: true }),
+  image: text("image"),
+});
+
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
+    refreshToken: text("refresh_token"),
+    accessToken: text("access_token"),
+    expiresAt: bigint("expires_at", { mode: "number" }),
+    tokenType: text("token_type"),
+    scope: text("scope"),
+    idToken: text("id_token"),
+    sessionState: text("session_state"),
+  },
+  (t) => [index("idx_accounts_user").on(t.userId)],
+);
+
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sessionToken: text("sessionToken").notNull().unique(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { withTimezone: true }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verification_token",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+);
 
 // ── Credentials users (email + password auth via Auth.js) ──────────────────
 export const credentialsUsers = pgTable("credentials_users", {

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { sql } from "drizzle-orm";
 import { childLogger } from "@/lib/logger";
 import { runBatch } from "@/lib/agent/core";
 import { PostgresAuditWriter, SqliteAuditWriter, type AuditLogEntry } from "@/lib/audit/logger";
@@ -229,7 +230,28 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
             updatedAt: new Date(p.updated_at),
           }));
           for (let i = 0; i < pRows.length; i += 50) {
-            await db.insert(promises).values(pRows.slice(i, i + 50));
+            // Upsert (matches the SQLite INSERT OR REPLACE path): a promise may
+            // already exist from a previous run — plain INSERT would hit the
+            // primary-key constraint and abort the whole write block.
+            await db.insert(promises).values(pRows.slice(i, i + 50)).onConflictDoUpdate({
+              target: promises.promiseId,
+              set: {
+                recordId: sql`excluded.record_id`,
+                customerId: sql`excluded.customer_id`,
+                merchantId: sql`excluded.merchant_id`,
+                promisedAmount: sql`excluded.promised_amount`,
+                promisedDate: sql`excluded.promised_date`,
+                dueDate: sql`excluded.due_date`,
+                promiseSource: sql`excluded.promise_source`,
+                status: sql`excluded.status`,
+                renewalCount: sql`excluded.renewal_count`,
+                remindersSent: sql`excluded.reminders_sent`,
+                fulfilledAmount: sql`excluded.fulfilled_amount`,
+                fulfilledDate: sql`excluded.fulfilled_date`,
+                createdAt: sql`excluded.created_at`,
+                updatedAt: sql`excluded.updated_at`,
+              },
+            });
           }
         }
 
