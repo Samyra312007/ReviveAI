@@ -1,10 +1,173 @@
 @import "tailwindcss";
 
+/*
+ * Claymorphism + minimalism theme for ReviveAI.
+ *
+ * Strategy: the incumbent UI was a dark zinc/emerald world. The zinc scale is
+ * remapped so every existing utility (bg-zinc-950, border-zinc-800,
+ * text-zinc-400, ...) resolves to a warm cream-clay palette instead — one
+ * token change transforms the whole app. `clay-*` tokens name the few
+ * surfaces that didn't exist before (page ground, raised panels, inset wells).
+ * Depth comes from soft dual-direction shadows, never from dark fills.
+ */
+
+@theme {
+  /* Type — Figtree (geometric, warm, minimal), loaded via next/font */
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ---- Clay neutral scale ------------------------------------------------ */
+  /* zinc-950 doubles as ink: text-on-accent and the darkest tone */
+  --color-zinc-950: #2b2823;
+  --color-zinc-100: #322e28; /* primary text */
+  --color-zinc-200: #443e36; /* secondary text */
+  --color-zinc-300: #544e45; /* body text */
+  --color-zinc-400: #625c51; /* muted-secondary text */
+  --color-zinc-500: #6d665b; /* muted text */
+  --color-zinc-600: #756e62; /* faint text (footer, timestamps) */
+  --color-zinc-700: #c9c2b3; /* strong borders */
+  --color-zinc-800: #e3ded2; /* soft borders, tracks */
+  --color-zinc-900: #fcfaf6; /* card surface (warm white) */
+
+  /* ---- Clay surfaces ----------------------------------------------------- */
+  --color-clay-50: #f3f0ea; /* page ground */
+  --color-clay-100: #f8f5ef; /* raised panels (drawer, auth card) */
+  --color-clay-200: #efe9de; /* inset wells */
+
+  /* ---- Brand green (money / recovery) ------------------------------------ */
+  /* emerald-500 is the fill: light enough for ink text to pass 4.5:1 */
+  --color-emerald-300: #8fd4b2;
+  --color-emerald-400: #2a764e; /* text accent: links, recovered values */
+  --color-emerald-450: #6bc49a; /* button hover fill */
+  --color-emerald-500: #55b287; /* primary buttons, bars */
+
+  /* ---- Status accents (pastel clay, hue preserved) ----------------------- */
+  --color-teal-400: #2fa08c;
+  --color-sky-300: #63a6cb;
+  --color-sky-400: #2979a8;
+  --color-sky-500: #22678f;
+  --color-violet-400: #6f48c4;
+  --color-violet-500: #5b3aa8;
+  --color-amber-300: #c79a45;
+  --color-amber-400: #96691a;
+  --color-amber-500: #7e5813;
+  --color-rose-300: #ce666e;
+  --color-rose-400: #c04b52;
+  --color-rose-500: #a63a40;
+  --color-red-400: #c04b52;
+  --color-red-500: #a63a40;
+  --color-fuchsia-400: #a63dae;
+  --color-fuchsia-500: #8a3291;
+
+  /* ---- Generous clay radii ----------------------------------------------- */
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.375rem;
+  --radius-3xl: 1.75rem;
+
+  /* ---- Soft dual-direction shadows (light top-left, warm gray below) ----- */
+  --shadow-clay-sm: 3px 3px 7px rgb(168 158 140 / 0.3),
+    -2px -2px 6px rgb(255 255 255 / 0.85);
+  --shadow-clay: 6px 6px 14px rgb(168 158 140 / 0.34),
+    -4px -4px 10px rgb(255 255 255 / 0.9);
+  --shadow-clay-lg: 10px 10px 24px rgb(168 158 140 / 0.38),
+    -6px -6px 16px rgb(255 255 255 / 0.95);
+  --shadow-clay-inset: inset 3px 3px 7px rgb(168 158 140 / 0.32),
+    inset -2px -2px 5px rgb(255 255 255 / 0.8);
+  --shadow-clay-btn: 4px 4px 10px rgb(168 158 140 / 0.32),
+    -3px -3px 8px rgb(255 255 255 / 0.9);
+}
+
 /* Keep every page fitting the viewport width: no horizontal scrollbars,
    even when a section or canvas temporarily exceeds the container. */
 html,
 body {
   overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-clay-50);
+  color: var(--color-zinc-100);
+  color-scheme: light;
+}
+
+/* ---- Browser surfaces (the parts we didn't draw) ------------------------- */
+::selection {
+  background: rgb(85 178 135 / 0.28);
+  color: var(--color-zinc-950);
+}
+
+/* Warm clay scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(201 194 179 / 0.9) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(201 194 179 / 0.9);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(168 158 140);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Keyboard focus: soft clay ring everywhere, on top of any utility ring */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid rgb(42 118 78 / 0.65);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* ---- Range sliders: chunky clay thumb ------------------------------------ */
+.clay-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--color-clay-200);
+  box-shadow: inset 2px 2px 5px rgb(168 158 140 / 0.4),
+    inset -2px -2px 4px rgb(255 255 255 / 0.85);
+  outline-offset: 4px;
+}
+.clay-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--color-emerald-500);
+  box-shadow: 3px 3px 7px rgb(168 158 140 / 0.45),
+    -2px -2px 5px rgb(255 255 255 / 0.9),
+    inset -2px -2px 4px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+.clay-range::-webkit-slider-thumb:active {
+  transform: scale(0.92);
+}
+.clay-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-emerald-500);
+  box-shadow: 3px 3px 7px rgb(168 158 140 / 0.45),
+    -2px -2px 5px rgb(255 255 255 / 0.9),
+    inset -2px -2px 4px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+.clay-range::-moz-range-thumb:active {
+  transform: scale(0.92);
 }
 
 /* Side-drawer navigation animations */
@@ -37,7 +200,7 @@ body {
 /* Custom scrollbar inside the hamburger side drawer */
 .drawer-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgb(63 63 70 / 0.9) transparent;
+  scrollbar-color: rgb(201 194 179 / 0.9) transparent;
 }
 .drawer-scroll::-webkit-scrollbar {
   width: 6px;
@@ -46,11 +209,11 @@ body {
   background: transparent;
 }
 .drawer-scroll::-webkit-scrollbar-thumb {
-  background: rgb(63 63 70 / 0.9);
+  background: rgb(201 194 179 / 0.9);
   border-radius: 9999px;
 }
 .drawer-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgb(82 82 91);
+  background: rgb(168 158 140);
 }
 .drawer-scroll::-webkit-scrollbar-corner {
   background: transparent;

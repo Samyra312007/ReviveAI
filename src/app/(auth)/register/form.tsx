@@ -74,7 +74,7 @@ export function RegisterForm() {
     <div className="w-full max-w-sm space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold tracking-tight">
-          Create your <span className="text-emerald-500">ReviveAI</span> account
+          Create your <span className="text-emerald-400">ReviveAI</span> account
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
           Start recovering lost revenue in minutes.
@@ -85,7 +85,7 @@ export function RegisterForm() {
       <button
         onClick={handleGoogle}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-700 bg-white px-4 py-2.5 text-sm font-medium text-zinc-200 shadow-clay-btn transition hover:bg-clay-200 active:translate-y-0.5 disabled:opacity-50"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -101,7 +101,7 @@ export function RegisterForm() {
           <div className="w-full border-t border-zinc-800" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-zinc-950 px-2 text-zinc-500">or sign up with email</span>
+          <span className="bg-clay-100 px-2 text-zinc-500">or sign up with email</span>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export function RegisterForm() {
             type="text"
             required
             autoComplete="name"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
+            className="w-full rounded-xl border border-zinc-800 bg-white px-4 py-2.5 text-sm text-zinc-100 shadow-clay-inset outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
             placeholder="Your name"
           />
         </div>
@@ -130,7 +130,7 @@ export function RegisterForm() {
             type="email"
             required
             autoComplete="email"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
+            className="w-full rounded-xl border border-zinc-800 bg-white px-4 py-2.5 text-sm text-zinc-100 shadow-clay-inset outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
             placeholder="you@example.com"
           />
         </div>
@@ -145,7 +145,7 @@ export function RegisterForm() {
             required
             minLength={8}
             autoComplete="new-password"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
+            className="w-full rounded-xl border border-zinc-800 bg-white px-4 py-2.5 text-sm text-zinc-100 shadow-clay-inset outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
             placeholder="••••••••"
           />
         </div>
@@ -160,7 +160,7 @@ export function RegisterForm() {
             required
             minLength={8}
             autoComplete="new-password"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
+            className="w-full rounded-xl border border-zinc-800 bg-white px-4 py-2.5 text-sm text-zinc-100 shadow-clay-inset outline-none transition focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
             placeholder="••••••••"
           />
         </div>
@@ -174,13 +174,13 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Creating account…" : "Create Account"}
         </button>
       </form>
 
-      <p className="text-center text-xs text-zinc-600">
+      <p className="text-center text-xs text-zinc-500">
         Already have an account?{" "}
         <a href="/login" className="text-emerald-400 hover:underline">
           Sign in

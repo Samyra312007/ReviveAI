@@ -99,7 +99,7 @@ export function NotificationSettings() {
         </div>
       )}
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <section className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
         <h2 className="text-base font-semibold">Channels</h2>
         <p className="mt-1 text-xs text-zinc-500">
           When a recovery nudge is due, ReviveAI tries channels in order: WhatsApp → email → SMS.
@@ -112,7 +112,7 @@ export function NotificationSettings() {
               ["smsEnabled", "SMS", "Text-only fallback (requires provider keys)"],
             ] as const
           ).map(([key, label, desc]) => (
-            <label key={key} className="flex cursor-pointer items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+            <label key={key} className="flex cursor-pointer items-center justify-between rounded-xl border border-zinc-800 bg-clay-200/80 p-4 shadow-clay-inset">
               <span>
                 <span className="block text-sm text-zinc-200">{label}</span>
                 <span className="block text-xs text-zinc-500">{desc}</span>
@@ -133,7 +133,7 @@ export function NotificationSettings() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <section className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
         <h2 className="text-base font-semibold">Quiet hours & limits</h2>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <label className="text-xs text-zinc-400">
@@ -142,7 +142,7 @@ export function NotificationSettings() {
               type="time"
               value={prefs.quietHoursStart}
               onChange={(e) => setPrefs({ ...prefs, quietHoursStart: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
           </label>
           <label className="text-xs text-zinc-400">
@@ -151,7 +151,7 @@ export function NotificationSettings() {
               type="time"
               value={prefs.quietHoursEnd}
               onChange={(e) => setPrefs({ ...prefs, quietHoursEnd: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
           </label>
           <label className="col-span-2 text-xs text-zinc-400">
@@ -162,11 +162,11 @@ export function NotificationSettings() {
               max={500}
               value={prefs.dailyLimit}
               onChange={(e) => setPrefs({ ...prefs, dailyLimit: Number(e.target.value) })}
-              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
           </label>
         </div>
-        <p className="mt-2 text-xs text-zinc-600">
+        <p className="mt-2 text-xs text-zinc-500">
           Notifications outside quiet hours are queued for the next window. The daily limit caps
           total outbound nudges per day.
         </p>
@@ -175,7 +175,7 @@ export function NotificationSettings() {
       <button
         onClick={save}
         disabled={status === "saving"}
-        className="rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+        className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:opacity-50"
       >
         {status === "saving" ? "Saving…" : status === "saved" ? "✓ Saved" : "Save preferences"}
       </button>

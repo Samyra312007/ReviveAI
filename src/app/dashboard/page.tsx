@@ -132,7 +132,7 @@ export default async function DashboardPage() {
           <Link
             key={p.href}
             href={p.href}
-            className="group rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition hover:border-emerald-500/40 hover:bg-zinc-900"
+            className="group rounded-2xl border border-zinc-800 bg-clay-100 p-4 shadow-clay-sm transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-clay"
           >
             <div className="font-medium text-zinc-200 group-hover:text-emerald-400">{p.label}</div>
             <div className="mt-1 text-xs text-zinc-500">{p.desc}</div>
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
         ))}
       </section>
 
-      <p className="mt-10 text-xs text-zinc-600">
+      <p className="mt-10 text-xs text-zinc-500">
         Dataset: {records.length || op.total_records} synthetic records · every metric is computed against ground truth labels, no cherry-picking.
       </p>
     </>

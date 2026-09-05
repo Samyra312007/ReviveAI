@@ -189,7 +189,7 @@ export function WhatIfConsole() {
                 step={s.step}
                 value={current}
                 onChange={(e) => setOverride(s.key, Number(e.target.value))}
-                className="w-full accent-emerald-500"
+                className="clay-range w-full"
               />
             </div>
           );

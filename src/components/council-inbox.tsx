@@ -57,7 +57,7 @@ export function CouncilInbox({ proposals }: { proposals: Proposal[] }) {
       {proposals.map((p) => (
         <div
           key={p.proposal_id}
-          className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent p-5"
+          className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5 shadow-clay-inset"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -84,7 +84,7 @@ export function CouncilInbox({ proposals }: { proposals: Proposal[] }) {
               <button
                 onClick={() => decide(p.proposal_id, "approved")}
                 disabled={pending === p.proposal_id}
-                className="rounded-lg bg-emerald-500 px-4 py-1.5 text-xs font-bold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+                className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:opacity-50"
               >
                 {pending === p.proposal_id ? "…" : "Approve"}
               </button>
@@ -96,17 +96,17 @@ export function CouncilInbox({ proposals }: { proposals: Proposal[] }) {
           <div className="mt-3 grid grid-cols-3 gap-3 border-t border-zinc-800 pt-3 text-xs">
             <div>
               <span className="text-zinc-500">Records blocked</span>
-              <div className="font-semibold tabular-nums text-white">{p.blocked_count}</div>
+              <div className="font-semibold tabular-nums text-zinc-950">{p.blocked_count}</div>
             </div>
             <div>
               <span className="text-zinc-500">Money at stake</span>
-              <div className="font-semibold tabular-nums text-white">
+              <div className="font-semibold tabular-nums text-zinc-950">
                 ₹{(p.blocked_recoverable_paise / 100).toLocaleString("en-IN")}
               </div>
             </div>
             <div>
               <span className="text-zinc-500">Avg recovery probability</span>
-              <div className="font-semibold tabular-nums text-white">
+              <div className="font-semibold tabular-nums text-zinc-950">
                 {(p.avg_recovery_probability * 100).toFixed(0)}%
               </div>
             </div>
@@ -115,7 +115,7 @@ export function CouncilInbox({ proposals }: { proposals: Proposal[] }) {
       ))}
 
       {message && (
-        <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-300">
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-400 shadow-clay-inset">
           {message}
         </div>
       )}

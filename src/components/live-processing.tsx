@@ -65,7 +65,7 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
   const pct = totalRecords > 0 ? (count / totalRecords) * 100 : 0;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
+    <div className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Live Batch Processing</h2>
@@ -77,7 +77,7 @@ export function LiveProcessing({ totalRecords }: { totalRecords: number }) {
         <button
           onClick={runBatch}
           disabled={running}
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {running ? "Processing…" : "Run Batch"}
         </button>

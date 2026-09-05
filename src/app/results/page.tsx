@@ -75,7 +75,7 @@ export default async function ResultsPage() {
         </div>
         <div className="mt-2 text-lg text-zinc-300">
           of {report.hero.at_risk_display} at risk ·{" "}
-          <span className="font-semibold text-white">{report.hero.recovery_rate_pct}%</span> recovery rate
+          <span className="font-semibold text-zinc-950">{report.hero.recovery_rate_pct}%</span> recovery rate
         </div>
         <div className="mt-6 max-w-xl">
           <ProgressBar pct={report.hero.recovery_rate_pct} />
@@ -112,7 +112,7 @@ export default async function ResultsPage() {
       </section>
 
       {report.prevention && report.prevention.flagged_customers > 0 && (
-        <section className="mt-10 rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-500/10 to-transparent p-6">
+        <section className="mt-10 rounded-2xl border border-sky-500/25 bg-sky-500/10 p-6 shadow-clay-inset">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-lg font-semibold text-sky-300">
               Prevention — revenue protected before it was ever lost
@@ -139,7 +139,7 @@ export default async function ResultsPage() {
           {[report.accuracy.overall, ...report.accuracy.by_category].map((a) => (
             <tr
               key={a.category}
-              className={a.category === "overall" ? "bg-zinc-900/70 font-medium text-white" : "text-zinc-300"}
+              className={a.category === "overall" ? "bg-emerald-500/15 font-medium text-emerald-400" : "text-zinc-300"}
             >
               <td className="px-4 py-2.5 capitalize">{a.category === "overall" ? "Overall" : a.category.replace(/_/g, " ")}</td>
               <td className="px-4 py-2.5 tabular-nums text-emerald-400">{a.tp}</td>

@@ -198,13 +198,13 @@ export function AuditLog({
                             </ul>
                           )}
                           {e.error && (
-                            <pre className="overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-rose-300">
+                            <pre className="overflow-auto rounded-lg bg-clay-200/80 p-2 font-mono text-[10px] text-rose-400 shadow-clay-inset">
                               {JSON.stringify(safeJsonParse(e.error, {}), null, 2)}
                             </pre>
                           )}
                         </div>
                         {e.api_call && (
-                          <pre className="max-h-48 overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-zinc-400">
+                          <pre className="max-h-48 overflow-auto rounded-lg bg-clay-200/80 p-2 font-mono text-[10px] text-zinc-400 shadow-clay-inset">
                             {JSON.stringify(safeJsonParse(e.api_call, {}), null, 2)}
                           </pre>
                         )}

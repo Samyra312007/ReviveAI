@@ -72,7 +72,7 @@ export function Timeline({
         {visible.map((e) => (
           <div key={e.id} className="relative">
             <span
-              className={`absolute -left-[31px] top-4 h-3 w-3 rounded-full ring-4 ring-zinc-950 ${DOT_COLORS[e.outcome] ?? DOT_COLORS.skipped}`}
+              className={`absolute -left-[31px] top-4 h-3 w-3 rounded-full ring-4 ring-clay-50 ${DOT_COLORS[e.outcome] ?? DOT_COLORS.skipped}`}
             />
             <button
               onClick={() => setExpanded(expanded === e.id ? null : e.id)}
@@ -142,7 +142,7 @@ export function Timeline({
                 {e.api_call && (
                   <div>
                     <h4 className="font-semibold text-zinc-300">API call</h4>
-                    <pre className="mt-1 max-h-40 overflow-auto rounded bg-zinc-950 p-2 font-mono text-[10px] text-zinc-400">
+                    <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-clay-200/80 p-2 font-mono text-[10px] text-zinc-400 shadow-clay-inset">
                       {JSON.stringify(safeJsonParse(e.api_call, {}), null, 2)}
                     </pre>
                   </div>
@@ -177,7 +177,7 @@ export function Timeline({
                 {e.error && (
                   <div>
                     <h4 className="font-semibold text-rose-400">Error</h4>
-                    <pre className="mt-1 rounded bg-zinc-950 p-2 font-mono text-[10px] text-rose-300">
+                    <pre className="mt-1 rounded-lg bg-clay-200/80 p-2 font-mono text-[10px] text-rose-400 shadow-clay-inset">
                       {JSON.stringify(safeJsonParse(e.error, {}), null, 2)}
                     </pre>
                   </div>

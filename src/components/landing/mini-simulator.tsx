@@ -12,7 +12,7 @@ export function MiniSimulator() {
   const blocked = Math.round(38 * (1 - factor + 0.2));
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="rounded-3xl border border-zinc-800 bg-clay-100 p-5 shadow-clay-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Try the guardrail economics</h3>
         <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-400">
@@ -31,23 +31,23 @@ export function MiniSimulator() {
           step={5000}
           value={cap}
           onChange={(e) => setCap(Number(e.target.value))}
-          className="w-full accent-emerald-500"
+          className="clay-range w-full"
         />
-        <div className="flex justify-between text-[10px] text-zinc-600">
+        <div className="flex justify-between text-[10px] text-zinc-500">
           <span>₹10k (strict)</span>
           <span>₹2L (permissive)</span>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div className="rounded-xl bg-clay-200/80 p-3 shadow-clay-inset">
           <div className="text-[10px] uppercase tracking-wider text-zinc-500">Recovered</div>
           <div className="mt-1 text-sm font-bold tabular-nums text-emerald-400">₹{clamped.toLocaleString("en-IN")}</div>
         </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div className="rounded-xl bg-clay-200/80 p-3 shadow-clay-inset">
           <div className="text-[10px] uppercase tracking-wider text-zinc-500">Interventions</div>
           <div className="mt-1 text-sm font-bold tabular-nums">{interventions}</div>
         </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div className="rounded-xl bg-clay-200/80 p-3 shadow-clay-inset">
           <div className="text-[10px] uppercase tracking-wider text-zinc-500">Blocked</div>
           <div className="mt-1 text-sm font-bold tabular-nums text-amber-400">{Math.max(1, blocked)}</div>
         </div>

@@ -79,7 +79,7 @@ export default async function RecordDetailPage({
                 </div>
               ))}
               {latestAudit.decision_reasoning && (
-                <p className="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-400">
+                <p className="rounded-xl bg-clay-200/80 p-3 text-xs leading-relaxed text-zinc-400 shadow-clay-inset">
                   {latestAudit.decision_reasoning}
                 </p>
               )}

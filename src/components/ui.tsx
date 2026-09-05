@@ -30,7 +30,7 @@ export function MetricCard({
   label,
   value,
   sub,
-  accent = "text-white",
+  accent = "text-zinc-950",
 }: {
   label: string;
   value: string;
@@ -38,7 +38,7 @@ export function MetricCard({
   accent?: string;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 shadow-clay-sm">
       <div className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</div>
       <div className={`mt-2 text-2xl font-bold tabular-nums ${accent}`}>{value}</div>
       {sub ? <div className="mt-1 text-xs text-zinc-500">{sub}</div> : null}
@@ -48,7 +48,7 @@ export function MetricCard({
 
 export function ProgressBar({ pct, color = "bg-emerald-500" }: { pct: number; color?: string }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800 shadow-clay-inset">
       <div
         className={`h-full rounded-full transition-all duration-500 ${color}`}
         style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
@@ -75,7 +75,7 @@ export function PageHeader({
 export function EmptyState({ message }: { message: string }) {
   const [first, ...rest] = message.split("`");
   return (
-    <div className="rounded-xl border border-dashed border-zinc-800 p-10 text-center text-sm text-zinc-500">
+    <div className="rounded-2xl border border-dashed border-zinc-700 bg-clay-100 p-10 text-center text-sm text-zinc-500 shadow-clay-inset">
       <p>
         {first}
         {rest.map((part, i) =>
@@ -94,7 +94,7 @@ export function EmptyState({ message }: { message: string }) {
 
 export function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-800">
+    <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-clay-100 shadow-clay-sm">
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-900/80 text-xs uppercase tracking-wider text-zinc-500">

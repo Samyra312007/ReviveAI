@@ -141,7 +141,7 @@ export default async function FleetPage() {
         </div>
       </section>
 
-      <p className="mt-4 text-xs text-zinc-600">{fleet.assumption_text}</p>
+      <p className="mt-4 text-xs text-zinc-500">{fleet.assumption_text}</p>
     </>
   );
 }

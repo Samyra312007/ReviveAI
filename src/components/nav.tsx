@@ -95,8 +95,8 @@ export function Nav() {
           <HamburgerIcon open={open} />
         </label>
 
-        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight">
-          Revive<span className="text-emerald-500">AI</span>
+        <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight text-zinc-950">
+          Revive<span className="text-emerald-400">AI</span>
         </Link>
 
         {/* Auth control — always visible in the main bar */}
@@ -116,7 +116,7 @@ export function Nav() {
           ) : (
             <Link
               href="/login"
-              className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+              className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5"
             >
               Sign in
             </Link>
@@ -126,7 +126,7 @@ export function Nav() {
 
       {/* Side drawer — CSS-only open/close (no JavaScript required) */}
       <div
-        className="pointer-events-none absolute left-0 top-full z-50 flex h-[calc(100dvh-3.5rem)] w-72 max-w-[85vw] -translate-x-full flex-col border-r border-zinc-800 bg-zinc-950 opacity-0 shadow-2xl transition-all duration-200 peer-checked:translate-x-0 peer-checked:opacity-100 peer-checked:pointer-events-auto"
+        className="pointer-events-none absolute left-0 top-full z-50 flex h-[calc(100dvh-3.5rem)] w-72 max-w-[85vw] -translate-x-full flex-col border-r border-zinc-800 bg-clay-100 opacity-0 shadow-clay-lg transition-all duration-200 peer-checked:translate-x-0 peer-checked:opacity-100 peer-checked:pointer-events-auto"
         id="reviveai-nav-drawer"
       >
         <div className="flex shrink-0 items-center justify-end border-b border-zinc-800 px-3 py-2.5">
@@ -192,7 +192,7 @@ export function Nav() {
               <Link
                 href="/login"
                 onClick={closeDrawer}
-                className="block w-full rounded-lg bg-emerald-500 px-4 py-2 text-center text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+                className="block w-full rounded-full bg-emerald-500 px-4 py-2 text-center text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5"
               >
                 Sign in
               </Link>

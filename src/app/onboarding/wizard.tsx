@@ -135,7 +135,7 @@ export function OnboardingWizard() {
       {step === "connect" && (
         <form
           action={connectRazorpay}
-          className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6"
+          className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm"
         >
           <h2 className="text-lg font-semibold">1 · Connect Razorpay</h2>
           <p className="mt-1 text-sm text-zinc-500">
@@ -148,25 +148,25 @@ export function OnboardingWizard() {
               name="business_name"
               required
               placeholder="Business name (e.g. Kirana Plus)"
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
             <input
               name="razorpay_key_id"
               required
               placeholder="rzp_test_xxxxxxxxxxxxxxxx"
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 font-mono text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
             <input
               name="razorpay_key_secret"
               required
               type="password"
               placeholder="Key Secret"
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-zinc-800 bg-white px-3 py-2 font-mono text-sm shadow-clay-inset outline-none focus:border-emerald-500/50"
             />
           </div>
           <button
             disabled={busy}
-            className="mt-5 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+            className="mt-5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:opacity-50"
           >
             {busy ? "Connecting…" : "Connect"}
           </button>
@@ -174,20 +174,20 @@ export function OnboardingWizard() {
       )}
 
       {step === "secret" && webhookSecret && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+        <div className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
           <h2 className="text-lg font-semibold">2 · Enable the webhook</h2>
           <p className="mt-1 text-sm text-zinc-500">
             In Razorpay, go to{" "}
             <span className="text-zinc-300">Settings → Webhooks → Add Webhook</span> and paste:
           </p>
           <div className="mt-4 space-y-2">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+            <div className="rounded-xl bg-clay-200/80 p-3 shadow-clay-inset">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500">URL</div>
               <code className="mt-1 block break-all font-mono text-xs text-emerald-400">
                 {webhookUrl}
               </code>
             </div>
-            <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+            <div className="rounded-xl bg-clay-200/80 p-3 shadow-clay-inset">
               <div className="text-[10px] uppercase tracking-wider text-zinc-500">Secret</div>
               <code className="mt-1 block break-all font-mono text-xs text-emerald-400">
                 {webhookSecret}
@@ -202,7 +202,7 @@ export function OnboardingWizard() {
           </div>
           <button
             onClick={() => setStep("import")}
-            className="mt-5 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"
+            className="mt-5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5"
           >
             Done — next step
           </button>
@@ -210,7 +210,7 @@ export function OnboardingWizard() {
       )}
 
       {step === "import" && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+        <div className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
           <h2 className="text-lg font-semibold">
             {merchantId ? "3 · Import recent failures" : "3 · Connect first"}
           </h2>
@@ -225,7 +225,7 @@ export function OnboardingWizard() {
           <button
             onClick={importData}
             disabled={busy || !merchantId}
-            className="mt-5 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+            className="mt-5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:opacity-50"
           >
             {busy ? "Importing…" : imported !== null ? "Re-import" : "Import data"}
           </button>
@@ -233,7 +233,7 @@ export function OnboardingWizard() {
       )}
 
       {step === "run" && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6">
+        <div className="rounded-2xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-sm">
           <h2 className="text-lg font-semibold">4 · Run your first batch</h2>
           <p className="mt-1 text-sm text-zinc-500">
             The agent will detect, diagnose, guardrail and attempt recovery on every imported
@@ -242,7 +242,7 @@ export function OnboardingWizard() {
           <button
             onClick={runBatch}
             disabled={busy}
-            className="mt-5 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50"
+            className="mt-5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5 disabled:opacity-50"
           >
             {busy ? "Running…" : "Run batch"}
           </button>
@@ -250,20 +250,23 @@ export function OnboardingWizard() {
       )}
 
       {step === "done" && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
-          <div className="text-3xl">🎉</div>
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center shadow-clay-inset">
+          <svg className="mx-auto h-10 w-10 text-emerald-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+            <path d="m8.5 12.2 2.4 2.4 4.6-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <h2 className="mt-2 text-lg font-semibold text-emerald-400">You&apos;re live</h2>
           <p className="mt-1 text-sm text-zinc-400">{runResult}</p>
           <div className="mt-5 flex justify-center gap-3">
             <Link
               href="/dashboard"
-              className="rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"
+              className="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5"
             >
               Go to dashboard
             </Link>
             <Link
               href="/settings/notifications"
-              className="rounded-lg border border-zinc-700 px-5 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800"
+              className="rounded-full border border-zinc-700 bg-white px-5 py-2 text-sm text-zinc-300 shadow-clay-btn transition hover:bg-clay-200 active:translate-y-0.5"
             >
               Configure notifications
             </Link>

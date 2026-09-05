@@ -80,9 +80,9 @@ export default async function VoicePage() {
           {Object.entries(metrics.language_distribution).map(([lang, count]) => (
             <span
               key={lang}
-              className="rounded-full border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm capitalize text-zinc-300"
+              className="rounded-full border border-zinc-800 bg-clay-100 px-4 py-1.5 text-sm capitalize text-zinc-300 shadow-clay-sm"
             >
-              {lang}: <span className="font-semibold tabular-nums text-white">{count}</span>
+              {lang}: <span className="font-semibold tabular-nums text-zinc-950">{count}</span>
             </span>
           ))}
           {Object.keys(metrics.language_distribution).length === 0 && (
@@ -120,7 +120,7 @@ export default async function VoicePage() {
             ))}
           </Table>
           {rows.length > 50 && (
-            <p className="mt-2 text-xs text-zinc-600">Showing first 50 of {rows.length}.</p>
+            <p className="mt-2 text-xs text-zinc-500">Showing first 50 of {rows.length}.</p>
           )}
         </section>
       )}
