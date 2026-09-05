@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import PostgresAdapter from "@auth/pg-adapter";
 import bcrypt from "bcryptjs";
 import { Pool } from "pg";
+import { getMerchantsForUser } from "@/lib/db/merchants";
 
 /**
  * Singleton pool shared with the rest of the app (drizzle, etc).
@@ -152,7 +153,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as string) ?? "viewer";
-        session.user.merchantIds = (token.merchantIds as string[]) ?? [];
+        // Always resolve the merchant list fresh from the DB so tenant scoping
+        // reflects the current onboarding state, never a stale JWT:
+        //   no merchant connected  -> []  -> queries show the demo dataset
+        //   merchant connected     -> [mer_xxx] -> queries show only that
+        //   merchant's data (demo records belong to other merchant ids).
+        try {
+          const merchants = await getMerchantsForUser(token.id as string);
+          session.user.merchantIds = merchants.map((m) => m.merchant_id);
+        } catch {
+          session.user.merchantIds = (token.merchantIds as string[]) ?? [];
+        }
       }
       return session;
     },
