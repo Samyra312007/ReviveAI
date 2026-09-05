@@ -7,7 +7,7 @@ import { withExclusiveLock } from "@/lib/lock";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const OWNER_APPROVER_ROLES = new Set(["owner", "approver"]);
+const OWNER_APPROVER_ROLES = new Set(["owner", "approver", "admin"]);
 
 export async function POST(request: Request) {
   const rl = checkRateLimit(clientKey(request));

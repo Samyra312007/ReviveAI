@@ -99,6 +99,9 @@ export function WhatIfConsole() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    // Re-arm on (re)mount: React StrictMode dev remounts would otherwise
+    // leave this false forever and silently drop every simulation result.
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
