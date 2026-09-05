@@ -48,15 +48,14 @@
 27. [Testing](#testing)
 28. [Observability](#observability)
 29. [Security](#security)
-30. [Roadmap](#roadmap)
-31. [Contributing](#contributing)
-32. [License](#license)
+30. [Contributing](#contributing)
+31. [License](#license)
 
 ---
 
 ## What is ReviveAI?
 
-ReviveAI is an **AI-powered revenue recovery platform** for Indian merchants. It automatically detects revenue leaks — failed payments, abandoned checkouts, failed subscriptions, and overdue invoices — diagnoses the root cause, chooses the right intervention, and executes recovery through Razorpay. Every decision the agent makes is **auditable, guardrail-bounded, and human-reviewable**.
+ReviveAI is an **AI-powered revenue recovery platform** for Indian merchants. It automatically detects revenue leaks (failed payments, abandoned checkouts, failed subscriptions, and overdue invoices), diagnoses the root cause, chooses the right intervention, and executes recovery through Razorpay. Every decision the agent makes is **auditable, guardrail-bounded, and human-reviewable**.
 
 ### Core Capabilities
 
@@ -77,7 +76,7 @@ ReviveAI is an **AI-powered revenue recovery platform** for Indian merchants. It
 
 ## The Problem
 
-Indian merchants lose **8–15% of annual revenue** to recoverable failures:
+Indian merchants lose **8-15% of annual revenue** to recoverable failures:
 
 ```mermaid
 pie title Revenue Leak Sources (illustrative distribution)
@@ -87,7 +86,7 @@ pie title Revenue Leak Sources (illustrative distribution)
     "Overdue invoices" : 15
 ```
 
-Each leak has a short recovery window. A customer who hit "insufficient funds" this morning is far more likely to pay tonight than next week — but the typical merchant has no automated way to act inside that window, and manual follow-up doesn't scale across thousands of customers.
+Each leak has a short recovery window. A customer who hit "insufficient funds" this morning is far more likely to pay tonight than next week, but the typical merchant has no automated way to act inside that window, and manual follow-up doesn't scale across thousands of customers.
 
 ReviveAI closes that gap: it continuously watches for failures and intervenes **while the window is open**, inside hard limits that keep outreach compliant and customer-friendly.
 
@@ -211,7 +210,7 @@ flowchart TB
     GEN --> DET1["1 · DETECT<br/>4 detectors classify root cause<br/>confidence + urgency scoring"]
     DET1 --> ROUTE{"Route by<br/>confidence"}
     ROUTE -->|"> 0.7"| INT
-    ROUTE -->|"0.4 – 0.7"| ESC
+    ROUTE -->|"0.4 to 0.7"| ESC
     ROUTE -->|"< 0.4 or infeasible"| SKIP
 
     INT["2 · DIAGNOSE<br/>Deterministic decision tree<br/>picks intervention by<br/>failure type + lifecycle stage"] --> GR1["3 · GUARDRAIL<br/>19 rules evaluated in order<br/>first failure blocks the action"]
@@ -279,13 +278,13 @@ sequenceDiagram
 
 ## Detection Engine
 
-Four detectors classify each record by root cause. Detection is **deterministic and explainable** — no black boxes — with an urgency score and confidence-based routing on top.
+Four detectors classify each record by root cause. Detection is **deterministic and explainable** (no black boxes), with an urgency score and confidence-based routing on top.
 
 | Detector | Input record type | Key signals |
 |----------|------------------|-------------|
 | `detectPaymentFailure` | `payment_failure` | failure reason → subcategory (insufficient funds, network timeout, fraud hold, expired card…), recency, customer history |
 | `detectSubscriptionFailure` | `subscription_failure` | mandate lifecycle stage, retry window, amount |
-| `detectCheckoutAbandonment` | `checkout_abandonment` | time since cart creation, urgency window (minutes–hours) |
+| `detectCheckoutAbandonment` | `checkout_abandonment` | time since cart creation, urgency window (minutes-hours) |
 | `detectOverdueInvoice` | `overdue_invoice` | aging bucket (7/14/30 day late), invoice amount, B2B segment |
 
 ```mermaid
@@ -301,7 +300,7 @@ flowchart LR
     FB -->|"window closed<br/>or amount too small"| SK["route = skip"]
     FB -->|"yes"| CF{"confidence"}
     CF -->|">= 0.7"| IV["route = intervene"]
-    CF -->|"0.4 – 0.7"| ES["route = escalate"]
+    CF -->|"0.4 to 0.7"| ES["route = escalate"]
     CF -->|"< 0.4"| NA["route = no_action"]
 ```
 
@@ -353,7 +352,7 @@ All 18 actions (`StrategyAction` in `src/lib/agent/strategy.ts`):
 
 ## Guardrails
 
-19 rules bound every intervention. They are evaluated in a fixed order and the **first failure blocks the action** with a machine-readable reason. All agent behavior is subject to them — including the simulator.
+19 rules bound every intervention. They are evaluated in a fixed order and the **first failure blocks the action** with a machine-readable reason. All agent behavior is subject to them, including the simulator.
 
 ```mermaid
 flowchart TB
@@ -395,10 +394,10 @@ flowchart TB
 | Category | Rules | Purpose |
 |----------|-------|---------|
 | **A · Retry** | A1, A2, A3 | Cap retries per record / customer / batch |
-| **B · Time** | B1–B4 | Quiet hours, cooldowns, intervention windows |
-| **C · Compliance** | C1–C4 | SMS limits, DND, fraud flags, approval thresholds |
-| **D · Financial** | D1–D3 | Amount caps, daily volume, cost-efficiency |
-| **F · Voice** | F1–F4 | Weekly call caps, calling hours, opt-in respect |
+| **B · Time** | B1-B4 | Quiet hours, cooldowns, intervention windows |
+| **C · Compliance** | C1-C4 | SMS limits, DND, fraud flags, approval thresholds |
+| **D · Financial** | D1-D3 | Amount caps, daily volume, cost-efficiency |
+| **F · Voice** | F1-F4 | Weekly call caps, calling hours, opt-in respect |
 | **G · Promise** | G1 | Promise renewal limits |
 
 Every guardrail parameter lives in `GuardrailConfig` (e.g. `maxRetriesPerRecord`, `cooldownHours`, `checkoutNudgeWindowHours`, `approvalThresholdPaise`). Values can be tuned via the Council (see below) and are **hard-capped** so no approval can set unbounded values.
@@ -422,7 +421,7 @@ flowchart LR
 ```
 
 - **Live mode:** real API calls with 5-second timeouts and per-call retry.
-- **Simulated mode:** used by tests, the What-If console, and any environment without Razorpay keys — outputs are statistically realistic (RNG-driven) but never touch the network.
+- **Simulated mode:** used by tests, the What-If console, and any environment without Razorpay keys. Outputs are statistically realistic (RNG-driven) but never touch the network.
 - **Webhook ingestion:** `payment.failed`, `subscription.failed`, `invoice.expired`, `payment.captured`, `refund.*` events are mapped into the records table (see [Webhooks](#api-reference)).
 
 ---
@@ -460,7 +459,7 @@ A `promise` intent feeds `parsePromiseText`, which extracts amount and due date 
 
 ## Voice Outreach
 
-Voice is the highest-touch channel, so it has its own strategy layer plus four dedicated guardrails (F1–F4):
+Voice is the highest-touch channel, so it has its own strategy layer plus four dedicated guardrails (F1-F4):
 
 ```mermaid
 flowchart TB
@@ -470,7 +469,7 @@ flowchart TB
     VS -->|"action → template"| TMP{"template mapping"}
     TMP -->|"retry actions"| V01["VT-01/02/03<br/>payment nudge (Hinglish)"]
     TMP -->|"invoice reminders"| V06["VT-06 gentle · VT-07 firm"]
-    V01 & V06 --> WIN{"within 09:00–20:00 IST?<br/>(rule F2)"}
+    V01 & V06 --> WIN{"within 09:00-20:00 IST?<br/>(rule F2)"}
     WIN -->|"no"| HOLD["hold until window opens"]
     WIN -->|"yes"| DLV{"deliverVoice()"}
     DLV -->|"92%"| WAP["delivered via WhatsApp"]
@@ -511,7 +510,7 @@ stateDiagram-v2
 
 ## Churn Prevention
 
-Prevention runs *before* failures happen — scoring currently-healthy customers by risk:
+Prevention runs *before* failures happen, scoring currently-healthy customers by risk:
 
 ```mermaid
 flowchart LR
@@ -530,7 +529,7 @@ Escalation to `ESCALATE_TO_CHURN_PREVENTION` (from terminal subscription failure
 
 ## Tuning Council
 
-The Council is ReviveAI's **human-in-the-loop governance layer**. The agent proposes, humans decide — and rejected proposals are remembered so the agent never re-proposes the same change.
+The Council is ReviveAI's **human-in-the-loop governance layer**. The agent proposes, humans decide, and rejected proposals are remembered so the agent never re-proposes the same change.
 
 ```mermaid
 flowchart TB
@@ -556,7 +555,7 @@ Proposal rules enforced by tests:
 
 ## What-If Simulator
 
-The simulator re-runs the exact production pipeline — same detectors, same guardrails, same strategy tree — against configurable overrides, so operators can measure the impact of a guardrail change **before** asking the Council for it.
+The simulator re-runs the exact production pipeline (same detectors, same guardrails, same strategy tree) against configurable overrides, so operators can measure the impact of a guardrail change **before** asking the Council for it.
 
 ```mermaid
 flowchart LR
@@ -638,8 +637,8 @@ Metrics include: hero numbers (recovered ₹, at-risk ₹, recovery rate %, ROI)
 
 - Node.js 18+ (CI runs Node 22)
 - npm
-- A Neon Postgres database (or any Postgres) — *optional*, the app falls back to a local SQLite fixture without it
-- Google OAuth credentials — *optional*
+- A Neon Postgres database (or any Postgres), *optional*: the app falls back to a local SQLite fixture without it
+- Google OAuth credentials, *optional*
 
 ### Installation
 
@@ -696,10 +695,10 @@ All variables are optional except where noted; the app degrades gracefully (simu
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | – | Postgres connection string. Absent ⇒ SQLite fixture mode |
+| `DATABASE_URL` | | Postgres connection string. Absent ⇒ SQLite fixture mode |
 | `AUTH_SECRET` | Yes | Secret for JWT session signing |
-| `AUTH_URL` | – | Canonical app URL for Auth.js |
-| `CRON_SECRET` | – | Bearer token required by `/api/cron/process` |
+| `AUTH_URL` | | Canonical app URL for Auth.js |
+| `CRON_SECRET` | | Bearer token required by `/api/cron/process` |
 
 ### OAuth
 
@@ -763,10 +762,10 @@ flowchart TB
 
     subgraph SRC["src/"]
         direction TB
-        AUTHF["auth.ts — Auth.js v5 config<br/>(Google + Credentials providers)"]
-        MWF["middleware.ts — edge JWT guard"]
+        AUTHF["auth.ts · Auth.js v5 config<br/>(Google + Credentials providers)"]
+        MWF["middleware.ts · edge JWT guard"]
 
-        subgraph APPDIR["app/ — Next.js App Router"]
+        subgraph APPDIR["app/ · Next.js App Router"]
             direction LR
             PAGES["Dashboard pages<br/>/ · /dashboard · /records/[id]<br/>/results · /timeline · /council<br/>/simulator · /guardrails · /exceptions<br/>/audit · /voice · /promises · /fleet<br/>/onboarding · /settings/notifications"]
             AUTHPAGES["(auth)/<br/>login · register"]
@@ -779,7 +778,7 @@ flowchart TB
             LANDING["landing/<br/>count-up · mini-simulator · gated-link"]
         end
 
-        subgraph LIBDIR["lib/ — business logic"]
+        subgraph LIBDIR["lib/ · business logic"]
             direction LR
             PIPELINE["agent/ · detection/<br/>guardrails/ · batch/"]
             CHANNELS["voice/ · conversation/<br/>promise/ · prevention/<br/>notification/"]
@@ -789,9 +788,9 @@ flowchart TB
 
     subgraph SUPPORT["Tooling & data"]
         direction LR
-        TESTS["tests/ — 18 Vitest files<br/>204 tests"]
-        SCRIPTS["scripts/ — generate-data<br/>run-batch · import-razorpay-data"]
-        MIGR["drizzle/ — SQL migrations"]
+        TESTS["tests/ · 18 Vitest files<br/>204 tests"]
+        SCRIPTS["scripts/ · generate-data<br/>run-batch · import-razorpay-data"]
+        MIGR["drizzle/ · SQL migrations"]
         DOCS["docs/retention-policy.md"]
         CONFIG["next.config.ts · drizzle.config.ts<br/>vitest.config.ts · vercel.json (cron)"]
     end
@@ -962,7 +961,7 @@ Auth.js adapter tables (`users`, `accounts`, `sessions`, `verification_token`) s
 
 | Table | Purpose |
 |-------|---------|
-| `records` | Recovery records — 150 synthetic rows or live Razorpay imports |
+| `records` | Recovery records: 150 synthetic rows or live Razorpay imports |
 | `promises` | Customer payment promises (from chat parsing) |
 | `audit_log` | Append-only decision audit trail |
 | `voice_notifications` | Voice channel analytics |
@@ -993,7 +992,7 @@ flowchart TB
 ```
 
 - **Providers:** Google OAuth + email/password (bcrypt-hashed via `credentials_users`).
-- **Roles:** `owner`, `approver`, `viewer` — viewers are read-only; council decisions require `owner` or `approver`.
+- **Roles:** `owner`, `approver`, `viewer`. Viewers are read-only; council decisions require `owner` or `approver`.
 - **Tenant isolation:** every query in `lib/db/query.ts` accepts the session's `merchantIds` and filters by `merchant_id`. Tests assert merchant A never sees merchant B's rows.
 - **Middleware:** edge-compatible JWT check (no DB import) protects all dashboard pages; API routes self-guard with 401s.
 
@@ -1077,7 +1076,7 @@ CI runs on every push/PR to `main`: **lint → typecheck → tests → build**, 
 
 - **Structured logging:** pino with per-module child loggers (`lib/logger.ts`).
 - **Error tracking:** Sentry via `sentry.server.config.ts` + `sentry.edge.config.ts` (only active with a DSN and in production).
-- **Health endpoint:** `GET /api/health` reports DB mode (`postgres`/`sqlite`), status, latency, report age, and env flags — returns 503 when unhealthy.
+- **Health endpoint:** `GET /api/health` reports DB mode (`postgres`/`sqlite`), status, latency, report age, and env flags, and returns 503 when unhealthy.
 - **Batch alerts:** failures are pushed to Slack and/or email (`lib/notification/alerts.ts`).
 - **Audit log:** every decision is persisted with reasoning, guardrail checks, API call details, outcome, amount, and time-to-recovery.
 
@@ -1101,23 +1100,12 @@ A full remediation history is available in [`SECURITY_AUDIT.md`](SECURITY_AUDIT.
 
 ---
 
-## Roadmap
-
-- [ ] Real TTS provider integration (current engine is simulated)
-- [ ] Live WhatsApp Business API delivery (inbound classification is live, delivery simulated)
-- [ ] Council proposal auto-application with expiry windows
-- [ ] Anomaly detection on guardrail block spikes
-- [ ] Multi-currency support beyond INR
-- [ ] Bulk CSV import for historical records (parser exists in `lib/csv.ts`)
-
----
-
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide — fork → branch → `npm test && npm run lint && npm run typecheck` → PR. Please make sure CI-relevant checks pass locally before opening a PR.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide: fork, branch, `npm test && npm run lint && npm run typecheck`, then open a PR. Please make sure CI-relevant checks pass locally before opening a PR.
 
 ---
 
 ## License
 
-MIT © 2026 ReviveAI Contributors — see [LICENSE](LICENSE).
+MIT © 2026 ReviveAI Contributors. See [LICENSE](LICENSE).
