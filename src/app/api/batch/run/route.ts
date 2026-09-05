@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const rl = checkRateLimit(clientKey(request));
   if (!rl.allowed) {
     return NextResponse.json(
-      { error: "Rate limit exceeded — retry shortly" },
+      { error: "Rate limit exceeded, retry shortly" },
       { status: 429 },
     );
   }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   // fleet unless they hold an admin/owner role.
   if ((!merchantIds || merchantIds.length === 0) && !["owner", "admin"].includes(role)) {
     return NextResponse.json(
-      { error: "Connect a Razorpay account first — see /onboarding" },
+      { error: "Connect a Razorpay account first (see /onboarding)" },
       { status: 400 },
     );
   }

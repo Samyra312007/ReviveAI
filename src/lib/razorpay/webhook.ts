@@ -108,7 +108,7 @@ export function mapRazorpayEvent(
   } else if (event.event === "invoice.expired" || event.event === "invoice.partially_paid") {
     type = "overdue_invoice";
     subcategory = "30_day_late";
-    failureReason = "Invoice overdue — payment link expired";
+    failureReason = "Invoice overdue: payment link expired";
   } else {
     // payment.captured, refund.*, etc. are not failure events.
     return null;

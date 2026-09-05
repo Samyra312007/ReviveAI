@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const rl = checkRateLimit(clientKey(request));
   if (!rl.allowed) {
     return NextResponse.json(
-      { error: "Rate limit exceeded — retry shortly" },
+      { error: "Rate limit exceeded, retry shortly" },
       { status: 429 },
     );
   }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   // ── RBAC: only owner/approver may decide proposals ──
   if (!OWNER_APPROVER_ROLES.has(session.user.role)) {
     return NextResponse.json(
-      { error: "Forbidden — only owners and approvers may decide council proposals" },
+      { error: "Forbidden: only owners and approvers may decide council proposals" },
       { status: 403 },
     );
   }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     decision,
     note:
       decision === "approved"
-        ? "Override active — takes effect on the next batch run."
-        : "Proposal rejected — no config change.",
+        ? "Override active, takes effect on the next batch run."
+        : "Proposal rejected, no config change.",
   });
 }

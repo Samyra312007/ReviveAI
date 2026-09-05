@@ -63,7 +63,7 @@ export async function dispatchNotification(
     // Try the next provider on failure (fallback chain).
   }
 
-  // Simulated path — mirrors the old in-process delivery simulation.
+  // Simulated path: mirrors the old in-process delivery simulation.
   return {
     ok: true,
     status: "delivered",

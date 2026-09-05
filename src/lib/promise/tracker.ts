@@ -90,7 +90,7 @@ export function processPromises(
           promise_id: promise.promise_id,
           record_id: record.record_id,
           event: "ESCALATED",
-          detail: `Renewal limit (${promise.renewal_count}) reached — manual handoff`,
+          detail: `Renewal limit (${promise.renewal_count}) reached: manual handoff`,
           tier: 6,
         });
       } else {
@@ -113,7 +113,7 @@ export function processPromises(
         event: "ALREADY_BROKEN",
         detail:
           promise.renewal_count >= MAX_RENEWALS
-            ? `Renewals exhausted (${promise.renewal_count}) — no further automated follow-up`
+            ? `Renewals exhausted (${promise.renewal_count}), no further automated follow-up`
             : `Awaiting ${tier.action.toLowerCase()}`,
         tier: tier.tier,
       });
@@ -135,10 +135,10 @@ export function processPromises(
           tier.tier >= 2 ? "whatsapp" : "sms",
           nowMs,
           type === "pre_due"
-            ? "Aapka payment kal due hai — yaad dila rahe hain."
+            ? "Aapka payment kal due hai, yaad dila rahe hain."
             : type === "on_due"
               ? "Aaj aapka payment ka din hai."
-              : "Payment abhi tak nahi aaya — kripya jald complete karein.",
+              : "Payment abhi tak nahi aaya, kripya jald complete karein.",
         ),
       );
       remindersCreated++;
@@ -185,7 +185,7 @@ export function processPromises(
           promise_id: promise.promise_id,
           record_id: record.record_id,
           event: promise.status === "escalated" ? "ESCALATED" : "RENEWED",
-          detail: `Renewal #${promise.renewal_count} accepted${promise.status === "escalated" ? " then capped — escalated (rule G1)" : ""}`,
+          detail: `Renewal #${promise.renewal_count} accepted${promise.status === "escalated" ? " then capped, escalated (rule G1)" : ""}`,
         });
         updatedPromises.push(promise);
       }

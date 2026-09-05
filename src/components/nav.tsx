@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -73,8 +74,8 @@ export function Nav() {
       />
 
       {/* Top bar */}
-      <div className="flex h-14 w-full items-center gap-2 px-4 sm:px-6">
-        {/* Hamburger — far-left corner, padded from the screen edge */}
+      <div className="flex h-14 w-full items-center gap-3 px-4 sm:px-6">
+        {/* Hamburger: far-left corner, padded from the screen edge */}
         <label
           htmlFor={TOGGLE_ID}
           aria-label={open ? "Close menu" : "Open menu"}
@@ -95,11 +96,20 @@ export function Nav() {
           <HamburgerIcon open={open} />
         </label>
 
+        <Image
+          src="/logo.png"
+          alt="ReviveAI logo"
+          width={297}
+          height={269}
+          priority
+          className="h-11 w-auto shrink-0"
+        />
+
         <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight text-zinc-950">
           Revive<span className="text-emerald-400">AI</span>
         </Link>
 
-        {/* Auth control — always visible in the main bar */}
+        {/* Auth control: always visible in the main bar */}
         <div className="ml-auto flex items-center gap-2">
           {session?.user ? (
             <div className="flex items-center gap-3">
@@ -124,21 +134,11 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Side drawer — CSS-only open/close (no JavaScript required) */}
+      {/* Side drawer: CSS-only open/close (no JavaScript required) */}
       <div
         className="pointer-events-none absolute left-0 top-full z-50 flex h-[calc(100dvh-3.5rem)] w-72 max-w-[85vw] -translate-x-full flex-col border-r border-zinc-800 bg-clay-100 opacity-0 shadow-clay-lg transition-all duration-200 peer-checked:translate-x-0 peer-checked:opacity-100 peer-checked:pointer-events-auto"
         id="reviveai-nav-drawer"
       >
-        <div className="flex shrink-0 items-center justify-end border-b border-zinc-800 px-3 py-2.5">
-          <label
-            htmlFor={TOGGLE_ID}
-            aria-label="Close menu"
-            className="flex cursor-pointer rounded-lg border border-zinc-800 p-1.5 text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-100"
-          >
-            <HamburgerIcon open />
-          </label>
-        </div>
-
         <nav className="drawer-scroll flex-1 overflow-y-auto px-3 py-4">
           {LINKS.map((link) => (
             <Link

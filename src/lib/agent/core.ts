@@ -42,6 +42,12 @@ export interface RunBatchOptions {
   seed?: number;
   now?: number;
   executor?: RazorpayExecutor;
+  /**
+   * When false, the batch never touches the Razorpay API: interventions are
+   * resolved with the deterministic RNG instead. Required for anything that
+   * must stay pure (simulator, tests); production batches leave it unset.
+   */
+  simulatedExecutor?: boolean;
   enableVoice?: boolean;
   enablePromises?: boolean;
   enableConversations?: boolean;
@@ -92,7 +98,7 @@ async function runPrevention(
 ): Promise<{ decision: RecordDecision; guardrailAudit: GuardrailAuditEntry[] }> {
   const strategy: Strategy = {
     action: "PREVENT_CARD_UPDATE",
-    reasoning: `Prevention: ${assessment.reasoning} — proactive card-update nudge`,
+    reasoning: `Prevention: ${assessment.reasoning}, proactive card-update nudge`,
   };
 
   const { outcome: guardrailOutcome, auditEntries } = evaluateGuardrails(
@@ -291,7 +297,9 @@ export async function runBatch(
   const now = options.now ?? Date.now();
   const executor =
     options.executor ??
-    new RazorpayExecutor(process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
+    (options.simulatedExecutor
+      ? new RazorpayExecutor()
+      : new RazorpayExecutor(process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET));
   const rng = new Rng(seed);
   const state = createBatchState(records.length, now, options.guardrailConfig);
 

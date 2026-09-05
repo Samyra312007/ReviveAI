@@ -48,7 +48,7 @@ export function parsePromiseText(
   }
 
   if (/(maybe|not sure|can't say|pata nahi|dekhenge|see later)/.test(normalized)) {
-    return { parsed: null, reason: "Vague commitment — needs manual date input" };
+    return { parsed: null, reason: "Vague commitment, needs manual date input" };
   }
 
   if (/tomorrow|kal\b/.test(normalized)) {

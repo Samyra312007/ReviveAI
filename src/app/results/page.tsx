@@ -63,7 +63,7 @@ export default async function ResultsPage() {
     <>
       <PageHeader
         title="Recovery Results"
-        description="Honest measurement against ground truth — all 150 records accounted for, including failures."
+        description="Honest measurement against ground truth, all 150 records accounted for, including failures."
       />
 
       <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent p-8">
@@ -84,7 +84,7 @@ export default async function ResultsPage() {
 
       <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Records Recovered" value={`${r.recovered_records} / ${r.recoverable_records}`} sub="recoverable records" accent="text-emerald-400" />
-        <MetricCard label="Avg Time to Recovery" value={r.avg_time_to_recovery_hours !== null ? `${r.avg_time_to_recovery_hours}h` : "—"} sub="for recovered records" />
+        <MetricCard label="Avg Time to Recovery" value={r.avg_time_to_recovery_hours !== null ? `${r.avg_time_to_recovery_hours}h` : "-"} sub="for recovered records" />
         <MetricCard label="Intervention Cost" value={`₹${(report.cost_benefit.intervention_cost_paise / 100).toFixed(2)}`} sub="channels + API" />
         <MetricCard label="Net ROI" value={report.hero.roi_display} sub={`net ₹${(report.cost_benefit.net_recovered_paise / 100).toLocaleString("en-IN")}`} accent="text-sky-400" />
       </section>
@@ -115,7 +115,7 @@ export default async function ResultsPage() {
         <section className="mt-10 rounded-2xl border border-sky-500/25 bg-sky-500/10 p-6 shadow-clay-inset">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="text-lg font-semibold text-sky-300">
-              Prevention — revenue protected before it was ever lost
+              Prevention: revenue protected before it was ever lost
             </h2>
             <span className="text-2xl font-bold tabular-nums text-sky-400">
               +{formatInr(report.prevention.protected_amount_paise)} protected
@@ -126,7 +126,7 @@ export default async function ResultsPage() {
             nudged card updates for {report.prevention.flagged_customers} of
             them. {report.prevention.prevented} completed the update, protecting{" "}
             {formatInr(report.prevention.protected_amount_paise)} of future
-            recurring revenue. Prevention is tracked separately from recovery —
+            recurring revenue. Prevention is tracked separately from recovery;
             it never inflates the recovered headline and is excluded from
             detection accuracy scoring.
           </p>
@@ -146,14 +146,14 @@ export default async function ResultsPage() {
               <td className="px-4 py-2.5 tabular-nums text-rose-400">{a.fp}</td>
               <td className="px-4 py-2.5 tabular-nums">{a.tn}</td>
               <td className="px-4 py-2.5 tabular-nums text-amber-400">{a.fn}</td>
-              <td className="px-4 py-2.5 tabular-nums">{a.precision ?? "—"}</td>
-              <td className="px-4 py-2.5 tabular-nums">{a.recall ?? "—"}</td>
-              <td className="px-4 py-2.5 tabular-nums">{a.f1 ?? "—"}</td>
+              <td className="px-4 py-2.5 tabular-nums">{a.precision ?? "-"}</td>
+              <td className="px-4 py-2.5 tabular-nums">{a.recall ?? "-"}</td>
+              <td className="px-4 py-2.5 tabular-nums">{a.f1 ?? "-"}</td>
             </tr>
           ))}
         </Table>
         <p className="mt-3 text-xs text-zinc-500">
-          False positive rate: {(report.accuracy.false_positive_rate * 100).toFixed(1)}% — interventions on healthy records are counted and shown.
+          False positive rate: {(report.accuracy.false_positive_rate * 100).toFixed(1)}%: interventions on healthy records are counted and shown.
         </p>
       </section>
     </>

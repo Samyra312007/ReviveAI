@@ -46,7 +46,7 @@ export default async function FleetPage() {
     <>
       <PageHeader
         title="Multi-Merchant Fleet View"
-        description="Per-merchant recovery economics with a cross-fleet guardrail fairness check — no merchant segment gets disproportionately blocked."
+        description="Per-merchant recovery economics with a cross-fleet guardrail fairness check: no merchant segment gets disproportionately blocked."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -95,7 +95,7 @@ export default async function FleetPage() {
         <h2 className="mb-3 text-lg font-semibold">Guardrail Fairness Check</h2>
         {fleet.fairness_flags.length === 0 ? (
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-            ✓ No fairness violations — every merchant&#39;s block rate is within 2× the fleet median.
+            ✓ No fairness violations: every merchant&#39;s block rate is within 2× the fleet median.
           </div>
         ) : (
           <div className="space-y-3">
@@ -106,7 +106,7 @@ export default async function FleetPage() {
               >
                 <span className="font-mono text-xs text-amber-400">{f.merchant_id}</span>{" "}
                 has a block rate of{" "}
-                <span className="font-bold tabular-nums">{(f.block_rate * 100).toFixed(1)}%</span> —{" "}
+                <span className="font-bold tabular-nums">{(f.block_rate * 100).toFixed(1)}%</span>,{" "}
                 {(f.block_rate / f.median_block_rate).toFixed(1)}× the fleet median (
                 {(f.median_block_rate * 100).toFixed(1)}%). Guardrail tuning for this
                 merchant should be reviewed before scaling.

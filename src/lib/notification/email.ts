@@ -25,7 +25,7 @@ export class EmailProvider implements NotificationProvider {
         body: JSON.stringify({
           from,
           to: [notification.customer_id.replace("cust_", "")],
-          subject: "Your payment needs attention — ReviveAI recovery",
+          subject: "Your payment needs attention | ReviveAI recovery",
           text: notification.personalized_text,
         }),
         signal: AbortSignal.timeout(8000),

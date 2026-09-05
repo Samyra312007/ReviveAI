@@ -27,13 +27,13 @@ export async function POST(request: Request) {
   // Resolve the merchant by matching the webhook secret.
   const merchant = await getMerchantBySecretFromBody(rawBody, signature);
   if (!merchant) {
-    log.warn({ event: event.event }, "Webhook signature verification failed — unknown secret");
+    log.warn({ event: event.event }, "Webhook signature verification failed (unknown secret)");
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   const record = mapRazorpayEvent(event, merchant.merchant_id);
   if (!record) {
-    // Non-failure event (captured, refunded…) — acknowledge and ignore.
+    // Non-failure event (captured, refunded…); acknowledge and ignore.
     return NextResponse.json({ ok: true, ignored: event.event });
   }
 

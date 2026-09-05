@@ -8,7 +8,7 @@ export default async function SimulatorPage() {
     <>
       <PageHeader
         title="What-If Economics Console"
-        description="Move the guardrails, watch the money. Every simulation runs the complete detect → diagnose → guardrail → execute pipeline against all 150 records — in-memory, deterministic, and side-effect free."
+        description="Move the guardrails, watch the money. Every simulation runs the complete detect → diagnose → guardrail → execute pipeline against all 150 records: in-memory, deterministic, and side-effect free."
       />
       <WhatIfConsole />
     </>

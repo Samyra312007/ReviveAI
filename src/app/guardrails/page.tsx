@@ -26,7 +26,7 @@ const RULE_DESCRIPTIONS: Record<string, string> = {
   F1: "Max 1 voice call per customer per week",
   F2: "No voice calls before 09:00 / after 20:00 IST",
   F3: "Max 3 voice attempts before switching to text",
-  F4: "Respect voice opt-in — never force",
+  F4: "Respect voice opt-in, never force",
   G1: "Max 2 promise renewals per record",
 };
 

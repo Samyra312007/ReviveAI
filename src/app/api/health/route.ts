@@ -18,7 +18,7 @@ export async function GET() {
     dbLatencyMs = Date.now() - t0;
     dbStatus = ok ? "postgres:ok" : "postgres:unreachable";
   } else {
-    // No DATABASE_URL — check if file-based data exists
+    // No DATABASE_URL: check if file-based data exists
     const fs = await import("node:fs");
     const path = await import("node:path");
     const dbPath = path.join(process.cwd(), "data", "synthetic.db");

@@ -45,7 +45,7 @@ export function Timeline({
   const [expanded, setExpanded] = useState<number | null>(null);
 
   if (entries.length === 0)
-    return <p className="text-sm text-zinc-500">No decisions yet — run the batch first.</p>;
+    return <p className="text-sm text-zinc-500">No decisions yet, run the batch first.</p>;
 
   const visible =
     filter === "all" ? entries : entries.filter((e) => e.outcome === filter);
@@ -102,7 +102,7 @@ export function Timeline({
                 ) : null}
               </div>
               <p className="mt-1 line-clamp-1 text-xs text-zinc-500">
-                {e.decision_reasoning ?? "—"}
+                {e.decision_reasoning ?? "-"}
               </p>
             </button>
 
@@ -115,7 +115,7 @@ export function Timeline({
                     <span className="tabular-nums">
                       {e.detection_confidence !== null
                         ? `${Math.round(e.detection_confidence * 100)}%`
-                        : "—"}
+                        : "-"}
                     </span>{" "}
                     · Category: {e.detected_category}/{e.detected_subcategory}
                   </p>

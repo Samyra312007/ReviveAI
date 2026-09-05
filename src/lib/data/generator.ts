@@ -264,7 +264,7 @@ export function generateBatch(
         const profile: SubcategoryProfile | null =
           type === "control" ? null : PROFILES[type][subcategory];
 
-        // Identity — unique customer per record (rule: no duplicate customer_ids)
+        // Identity: unique customer per record (rule: no duplicate customer_ids)
         let customerId: string;
         do {
           customerId = `cus_${rng.int(10000, 99999)}`;
@@ -325,7 +325,7 @@ export function generateBatch(
           customer_segment: segment,
           previous_payments: previousPayments,
           avg_order_value: avgOrderValue,
-          failure_reason: profile ? profile.failure_reason : "No issue — healthy paying customer",
+          failure_reason: profile ? profile.failure_reason : "No issue, healthy paying customer",
           preferred_language: preferredLanguage,
           voice_opt_in: voiceOptIn,
           ground_truth: buildGroundTruth(rng, type, subcategory, profile, amount),

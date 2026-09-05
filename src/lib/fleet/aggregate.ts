@@ -155,6 +155,6 @@ export function buildFleetSummary(
       scaled_10k_annual_paise: perMerchantMonthly * 12 * SCALED_MERCHANT_COUNT,
     },
     assumption_text:
-      "Assumes the batch represents ~30 days of revenue-leak events and linear scaling — illustrative sizing, not a forecast.",
+      "Assumes the batch represents ~30 days of revenue-leak events and linear scaling; illustrative sizing, not a forecast.",
   };
 }

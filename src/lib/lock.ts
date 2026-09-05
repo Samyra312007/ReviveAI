@@ -8,7 +8,7 @@ const ADVISORY_TIMEOUT_MS = 3500;
  *
  * - SQLite / local dev (no DATABASE_URL): in-memory promise queue (single process).
  * - Postgres / production (DATABASE_URL set): pg_advisory_xact_lock via pooled
- *   connection — works across Vercel serverless instances. Falls back to queue
+ *   connection, works across Vercel serverless instances. Falls back to queue
  *   if Postgres is unreachable.
  */
 export function withExclusiveLock<T>(fn: () => Promise<T> | T): Promise<T> {

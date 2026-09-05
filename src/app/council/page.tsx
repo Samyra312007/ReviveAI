@@ -41,7 +41,7 @@ export default async function CouncilPage() {
     <>
       <PageHeader
         title="Guardrail Tuning Council"
-        description="The agent audits its own guardrail blocks after every run and proposes adjustments where it believes safety rules are too tight. A human approves or rejects — the agent cannot change its own boundaries. Approved overrides apply from the next batch run and are fully audited."
+        description="The agent audits its own guardrail blocks after every run and proposes adjustments where it believes safety rules are too tight. A human approves or rejects; the agent cannot change its own boundaries. Approved overrides apply from the next batch run and are fully audited."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -122,7 +122,7 @@ export default async function CouncilPage() {
         <ol className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-zinc-400">
           <li>After each batch, the council analyzes every guardrail block against ground-truth recovery likelihood</li>
           <li>Only rules that blocked ≥3 records with &gt;50% average recovery probability generate a proposal</li>
-          <li>Proposals sit in this inbox until a human decides — the agent has no self-service path</li>
+          <li>Proposals sit in this inbox until a human decides; the agent has no self-service path</li>
           <li>Approved values become active overrides for the next run; every decision is timestamped</li>
           <li>Rejecting is always safe: defaults stay in force until explicitly changed</li>
         </ol>

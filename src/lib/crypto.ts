@@ -22,7 +22,7 @@ export function encryptSecret(plaintext: string): string {
 export function decryptSecret(payload: string): string {
   const parts = payload.split(":");
   if (parts[0] !== "enc" || parts[1] !== "v1") {
-    // Legacy plaintext fallback (dev only) — never write new plaintext.
+    // Legacy plaintext fallback (dev only), never write new plaintext.
     return payload;
   }
   const [, , ivHex, tagHex, dataHex] = parts;

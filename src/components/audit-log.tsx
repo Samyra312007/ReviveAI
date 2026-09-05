@@ -96,7 +96,7 @@ export function AuditLog({
   }
 
   if (entries.length === 0)
-    return <p className="text-sm text-zinc-500">No audit entries yet — run the batch first.</p>;
+    return <p className="text-sm text-zinc-500">No audit entries yet, run the batch first.</p>;
 
   return (
     <>
@@ -162,12 +162,12 @@ export function AuditLog({
                   </td>
                   <td className="px-4 py-2.5">
                     <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-xs text-sky-400">
-                      {e.action_taken ?? "—"}
+                      {e.action_taken ?? "-"}
                     </span>
                   </td>
                   <td className="px-4 py-2.5"><OutcomeBadge outcome={e.outcome} /></td>
                   <td className="px-4 py-2.5 tabular-nums text-emerald-400">
-                    {e.amount_recovered ? `₹${(e.amount_recovered / 100).toLocaleString("en-IN")}` : "—"}
+                    {e.amount_recovered ? `₹${(e.amount_recovered / 100).toLocaleString("en-IN")}` : "-"}
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <button

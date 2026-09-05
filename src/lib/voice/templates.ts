@@ -15,7 +15,7 @@ export const VOICE_TEMPLATES: VoiceTemplate[] = [
     tone: "friendly",
     duration_seconds: 22,
     template:
-      "Namaste {name}. Aapka ₹{amount} ka payment {merchant} ke saath fail ho gaya hai. Chinta mat karein — humne aapke liye ek naya payment link bheja hai. Link par click karein aur 2 minute mein payment complete karein. Dhanyavaad!",
+      "Namaste {name}. Aapka ₹{amount} ka payment {merchant} ke saath fail ho gaya hai. Chinta mat karein, humne aapke liye ek naya payment link bheja hai. Link par click karein aur 2 minute mein payment complete karein. Dhanyavaad!",
   },
   {
     id: "VT-02",
@@ -24,7 +24,7 @@ export const VOICE_TEMPLATES: VoiceTemplate[] = [
     tone: "urgent",
     duration_seconds: 14,
     template:
-      "Namaste {name}. Technical issue ki wajah se aapka payment ruk gaya tha. Humne dobara link bheja hai — ab try karein, 1 minute mein ho jayega!",
+      "Namaste {name}. Technical issue ki wajah se aapka payment ruk gaya tha. Humne dobara link bheja hai, ab try karein, 1 minute mein ho jayega!",
   },
   {
     id: "VT-03",
@@ -42,7 +42,7 @@ export const VOICE_TEMPLATES: VoiceTemplate[] = [
     tone: "urgent",
     duration_seconds: 11,
     template:
-      "Namaste {name}. Aapka order abhi bhi wait kar raha hai. Limited stock hai — jaldi se order place karein!",
+      "Namaste {name}. Aapka order abhi bhi wait kar raha hai. Limited stock hai, jaldi se order place karein!",
   },
   {
     id: "VT-05",
@@ -60,7 +60,7 @@ export const VOICE_TEMPLATES: VoiceTemplate[] = [
     tone: "friendly",
     duration_seconds: 18,
     template:
-      "Namaste {name}. Aapka ₹{amount} ka invoice {merchant} ke liye 7 din se pending hai. Payment kar dein ya humse baat karein — hum aapki madad karenge.",
+      "Namaste {name}. Aapka ₹{amount} ka invoice {merchant} ke liye 7 din se pending hai. Payment kar dein ya humse baat karein, hum aapki madad karenge.",
   },
   {
     id: "VT-07",

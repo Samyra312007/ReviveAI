@@ -62,7 +62,7 @@ export function selectStrategy(
       case "bank_declined":
         return { action: "ESCALATE_TO_MANUAL", reasoning: "Potential account issue, needs review" };
       case "fraud_hold":
-        return { action: "SKIP", reasoning: "Fraud flag — never auto-intervene" };
+        return { action: "SKIP", reasoning: "Fraud flag, never auto-intervene" };
     }
   }
 

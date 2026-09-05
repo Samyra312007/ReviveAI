@@ -4,7 +4,7 @@ import { MiniSimulator } from "@/components/landing/mini-simulator";
 
 export const dynamic = "force-dynamic";
 
-/* Single-stroke icons (1.5px, round caps) — one consistent family */
+/* Single-stroke icons (1.5px, round caps), one consistent family */
 const STEP_ICONS = {
   detect: (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -33,7 +33,7 @@ const STEP_ICONS = {
   ),
 };
 
-/* Weekly recovery trend — real SVG bars (same values as the incumbent mock) */
+/* Weekly recovery trend: real SVG bars (same values as the incumbent mock) */
 const TREND = [12, 18, 10, 22, 14, 20, 16, 24, 13, 19, 15, 21];
 
 function RecoveryChart() {
@@ -90,7 +90,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Live metric mock — raised clay slab */}
+          {/* Live metric mock: raised clay slab */}
           <div className="relative rounded-3xl border border-zinc-800 bg-clay-100 p-6 shadow-clay-lg">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">Live from SQLite</span>

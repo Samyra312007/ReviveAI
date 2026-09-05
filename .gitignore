@@ -21,3 +21,6 @@ npm-debug.log*
 .opencode
 .impeccable
 .neon
+
+# Sentry Config File
+.env.sentry-build-plugin

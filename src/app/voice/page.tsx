@@ -44,7 +44,7 @@ export default async function VoicePage() {
   return (
     <>
       <PageHeader
-        title="Voice Notifications — Hinglish Recovery"
+        title="Voice Notifications: Hinglish Recovery"
         description="Personalized Hinglish voice nudges with simulated TTS and WhatsApp delivery. Gated by opt-in (F4), weekly limits (F1), and 09:00–20:00 IST windows (F2)."
       />
 
@@ -52,7 +52,7 @@ export default async function VoicePage() {
         <MetricCard label="Voice Sent" value={String(metrics.sent)} sub={`${rows.length} in latest batch`} />
         <MetricCard
           label="Delivery Rate"
-          value={metrics.delivery_rate !== null ? `${Math.round(metrics.delivery_rate * 100)}%` : "—"}
+          value={metrics.delivery_rate !== null ? `${Math.round(metrics.delivery_rate * 100)}%` : "-"}
           sub={`${metrics.delivered} delivered · target >90%`}
           accent={
             metrics.delivery_rate === null || metrics.delivery_rate >= 0.9
@@ -62,14 +62,14 @@ export default async function VoicePage() {
         />
         <MetricCard
           label="Response Rate"
-          value={metrics.response_rate !== null ? `${Math.round(metrics.response_rate * 100)}%` : "—"}
+          value={metrics.response_rate !== null ? `${Math.round(metrics.response_rate * 100)}%` : "-"}
           sub={`${metrics.responded} responded · target >15%`}
           accent="text-sky-400"
         />
         <MetricCard
           label="Recovered via Voice"
           value={String(metrics.recovered_via_voice)}
-          sub={`avg response ${metrics.avg_response_time_minutes !== null ? `${metrics.avg_response_time_minutes}m` : "—"}`}
+          sub={`avg response ${metrics.avg_response_time_minutes !== null ? `${metrics.avg_response_time_minutes}m` : "-"}`}
           accent="text-emerald-400"
         />
       </div>
@@ -110,7 +110,7 @@ export default async function VoicePage() {
                       {r.response_type?.replace(/_/g, " ")}
                     </span>
                   ) : (
-                    <span className="text-zinc-600">—</span>
+                    <span className="text-zinc-600">-</span>
                   )}
                 </td>
                 <td className="max-w-xs truncate px-4 py-2.5 text-xs text-zinc-500">

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const rl = checkRateLimit(clientKey(request));
   if (!rl.allowed) {
     return NextResponse.json(
-      { error: "Rate limit exceeded — retry shortly" },
+      { error: "Rate limit exceeded, retry shortly" },
       { status: 429 },
     );
   }

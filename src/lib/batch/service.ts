@@ -122,6 +122,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
     seed,
     now,
     guardrailConfig: guardrailOverrides,
+    simulatedExecutor: process.env.NODE_ENV !== "production",
   });
 
   // ── Dispatch notifications through real providers ───────────────────────
@@ -231,7 +232,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
           }));
           for (let i = 0; i < pRows.length; i += 50) {
             // Upsert (matches the SQLite INSERT OR REPLACE path): a promise may
-            // already exist from a previous run — plain INSERT would hit the
+            // already exist from a previous run, so plain INSERT would hit the
             // primary-key constraint and abort the whole write block.
             await db.insert(promises).values(pRows.slice(i, i + 50)).onConflictDoUpdate({
               target: promises.promiseId,
@@ -354,7 +355,7 @@ async function performRun(merchantIds?: string[]): Promise<BatchRunResponse> {
       }
     } catch (e) {
       reportWarning =
-        "Postgres report write failed — falling back to file: " +
+        "Postgres report write failed; falling back to file: " +
         (e instanceof Error ? e.message : String(e));
     }
   }

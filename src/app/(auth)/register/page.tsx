@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { RegisterForm } from "./form";
 
 export const metadata: Metadata = {
-  title: "Create Account — ReviveAI",
+  title: "Create Account | ReviveAI",
   description: "Create a ReviveAI account to start recovering revenue.",
 };
 

@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 const log = childLogger("api/webhooks/whatsapp");
 
-/** Meta verification handshake — returns hub.challenge when the token matches. */
+/** Meta verification handshake, returns hub.challenge when the token matches. */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const mode = url.searchParams.get("hub.mode");

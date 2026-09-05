@@ -128,10 +128,10 @@ const INTENT_WEIGHTS_BY_SUBCATEGORY: Record<
 
 const AGENT_MESSAGES: Record<ConversationIntent, string> = {
   promise: "Thank you! Aapki payment date note kar li hai. Due date par reminder bhejenge.",
-  hardship: "Koi baat nahi. Hum aapke liye payment plan bana sakte hain — 2 aasaan kishton mein pay karein.",
+  hardship: "Koi baat nahi. Hum aapke liye payment plan bana sakte hain, 2 aasaan kishton mein pay karein.",
   refusal: "Samajh gaye. Aapki request hum note kar rahe hain aur team review karegi.",
   dispute: "Aapka concern escalate kar diya gaya hai. Hamari support team 24 ghante mein sampark karegi.",
-  ready_to_pay: "Badhiya! Naya payment link bhej diye hain — 2 minute mein complete ho jayega.",
+  ready_to_pay: "Badhiya! Naya payment link bhej diye hain, 2 minute mein complete ho jayega.",
 };
 
 const NEEDS_DATE_FOLLOWUP = "Kab tak payment kar sakte hain? Exact date ya din bataiye.";
@@ -317,7 +317,7 @@ export function runConversation(
         } else if (parsed.parsed && record.promise_history?.length) {
           turns.push({
             speaker: "agent",
-            text: "Aapki existing promise already tracked hai — usi hisaab se follow-up milega.",
+            text: "Aapki existing promise already tracked hai, usi hisaab se follow-up milega.",
           });
           resolution = "promise_noted_existing";
         } else if (attempt < MAX_CUSTOMER_TURNS - 1) {

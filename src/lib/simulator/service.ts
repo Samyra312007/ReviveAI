@@ -117,18 +117,19 @@ export async function simulateScenario(
   const { clamped, rejected } = clampOverrides(rawOverrides);
   const records = attachPromiseHistories(dataset);
 
-  const baselineRun = await runBatch(records, {
+  // Simulations must stay pure: no network, no side effects, deterministic.
+  const sharedOptions = {
     seed: SERVER_SEED,
     now: SERVER_NOW,
     enableVoice: false,
     enablePromises: false,
-  });
+    simulatedExecutor: true,
+  } as const;
+
+  const baselineRun = await runBatch(records, sharedOptions);
 
   const scenarioRun = await runBatch(records, {
-    seed: SERVER_SEED,
-    now: SERVER_NOW,
-    enableVoice: false,
-    enablePromises: false,
+    ...sharedOptions,
     guardrailConfig: clamped,
   });
 

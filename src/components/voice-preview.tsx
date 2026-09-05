@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { VOICE_TEMPLATES, renderTemplate } from "@/lib/voice/templates";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { VOICE_TEMPLATES, renderTemplate, VoiceTemplate } from "@/lib/voice/templates";
 
 const TONE_STYLES: Record<string, string> = {
   friendly: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
@@ -9,11 +9,82 @@ const TONE_STYLES: Record<string, string> = {
   formal: "border-sky-500/30 bg-sky-500/10 text-sky-400",
 };
 
+/** Pick the best available voice for an English/Hinglish line. */
+function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  const preferences = ["en-IN", "hi-IN", "en-GB", "en-US"];
+  for (const lang of preferences) {
+    const match = voices.find((v) => v.lang.replace("_", "-") === lang);
+    if (match) return match;
+  }
+  return voices.find((v) => v.lang.startsWith("en")) ?? voices[0] ?? null;
+}
+
 export function VoicePreview() {
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setSpeechSupported(false);
+      return;
+    }
+    const synth = window.speechSynthesis;
+    // Chrome loads voices asynchronously; keep the freshest list.
+    const loadVoices = () => {
+      voiceRef.current = pickVoice(synth.getVoices());
+    };
+    loadVoices();
+    synth.addEventListener("voiceschanged", loadVoices);
+    // Stop any audio when leaving the page.
+    return () => {
+      synth.removeEventListener("voiceschanged", loadVoices);
+      synth.cancel();
+    };
+  }, []);
+
+  const stop = useCallback(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setPlayingId(null);
+  }, []);
+
+  function togglePlay(t: VoiceTemplate) {
+    if (!speechSupported) return;
+    if (playingId === t.id) {
+      stop();
+      return;
+    }
+    const synth = window.speechSynthesis;
+    synth.cancel(); // stop anything already speaking
+
+    const line = renderTemplate(t, {
+      name: "Ravi Kumar",
+      amount: "2,499",
+      merchant: "Kirana Plus",
+      discount: "100",
+    });
+    const utterance = new SpeechSynthesisUtterance(line);
+    if (voiceRef.current) utterance.voice = voiceRef.current;
+    utterance.lang = voiceRef.current?.lang ?? "en-IN";
+    utterance.rate = t.tone === "urgent" ? 1.1 : 0.95;
+    utterance.pitch = t.tone === "friendly" ? 1.05 : 1;
+    utterance.onend = () => setPlayingId((cur) => (cur === t.id ? null : cur));
+    utterance.onerror = () => setPlayingId((cur) => (cur === t.id ? null : cur));
+
+    setPlayingId(t.id);
+    synth.speak(utterance);
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {!speechSupported && (
+        <div className="lg:col-span-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-400">
+          Your browser does not support speech synthesis, so previews cannot
+          play audio. The scripts below are exactly what would be spoken.
+        </div>
+      )}
       {VOICE_TEMPLATES.map((t) => (
         <div
           key={t.id}
@@ -53,8 +124,9 @@ export function VoicePreview() {
                 ~{t.duration_seconds}s · hinglish
               </span>
               <button
-                onClick={() => setPlayingId(playingId === t.id ? null : t.id)}
-                className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 transition hover:bg-emerald-500/25"
+                onClick={() => togglePlay(t)}
+                disabled={!speechSupported}
+                className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {playingId === t.id ? "■ Stop" : "▶ Preview"}
               </button>

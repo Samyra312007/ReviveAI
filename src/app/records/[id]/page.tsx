@@ -33,6 +33,14 @@ export default async function RecordDetailPage({
 
   return (
     <>
+      <div className="mb-4">
+        <Link
+          href="/records"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-1.5 text-sm text-zinc-300 shadow-clay-sm transition hover:border-emerald-500/50 hover:text-emerald-400"
+        >
+          <span aria-hidden>←</span> Back to Records
+        </Link>
+      </div>
       <PageHeader
         title={record.record_id}
         description={`${record.customer_name} · ${record.type.replace(/_/g, " ")} · ${record.subcategory.replace(/_/g, " ")}`}
@@ -70,12 +78,12 @@ export default async function RecordDetailPage({
                 ["Category", latestAudit.detected_category],
                 ["Strategy", latestAudit.selected_strategy],
                 ["Confidence", latestAudit.detection_confidence?.toFixed(3)],
-                ["Recovered", latestAudit.amount_recovered ? `₹${(latestAudit.amount_recovered / 100).toLocaleString("en-IN")}` : "—"],
+                ["Recovered", latestAudit.amount_recovered ? `₹${(latestAudit.amount_recovered / 100).toLocaleString("en-IN")}` : "-"],
                 ["Run", latestAudit.run_id],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between gap-4">
                   <dt className="shrink-0 text-xs uppercase tracking-wider text-zinc-500">{k}</dt>
-                  <dd className="truncate text-right text-zinc-200">{v ?? "—"}</dd>
+                  <dd className="truncate text-right text-zinc-200">{v ?? "-"}</dd>
                 </div>
               ))}
               {latestAudit.decision_reasoning && (
@@ -115,11 +123,11 @@ export default async function RecordDetailPage({
             {auditRows.map((a) => (
               <tr key={a.id} className="text-zinc-300">
                 <td className="px-4 py-2.5">{new Date(a.timestamp).toLocaleString()}</td>
-                <td className="px-4 py-2.5 font-mono text-xs">{a.run_id ?? "—"}</td>
+                <td className="px-4 py-2.5 font-mono text-xs">{a.run_id ?? "-"}</td>
                 <td className="px-4 py-2.5"><OutcomeBadge outcome={a.outcome} /></td>
-                <td className="px-4 py-2.5">{a.selected_strategy ?? "—"}</td>
+                <td className="px-4 py-2.5">{a.selected_strategy ?? "-"}</td>
                 <td className="px-4 py-2.5 tabular-nums">
-                  {a.amount_recovered ? `₹${(a.amount_recovered / 100).toLocaleString("en-IN")}` : "—"}
+                  {a.amount_recovered ? `₹${(a.amount_recovered / 100).toLocaleString("en-IN")}` : "-"}
                 </td>
               </tr>
             ))}

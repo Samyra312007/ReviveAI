@@ -18,7 +18,7 @@ export default async function AuditPage({
     <>
       <PageHeader
         title="Full Audit Log"
-        description="Every decision, every guardrail check, every API call — searchable and exportable. This is the compliance trail."
+        description="Every decision, every guardrail check, every API call: searchable and exportable. This is the compliance trail."
       />
       <AuditLog
         entries={entries}

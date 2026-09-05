@@ -6,11 +6,11 @@ export function validateEnv() {
   const warnings: string[] = [];
 
   if (!process.env.AUTH_SECRET) {
-    warnings.push("AUTH_SECRET is not set — auth will not work in production");
+    warnings.push("AUTH_SECRET is not set, auth will not work in production");
   }
 
   if (!process.env.DATABASE_URL) {
-    warnings.push("DATABASE_URL is not set — using SQLite fallback (local dev only)");
+    warnings.push("DATABASE_URL is not set, using SQLite fallback (local dev only)");
   }
 
   if (warnings.length > 0 && process.env.NODE_ENV === "production") {

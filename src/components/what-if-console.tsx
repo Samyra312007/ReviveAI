@@ -284,7 +284,7 @@ export function WhatIfConsole() {
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
               <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-                Category breakdown — scenario
+                Category breakdown (scenario)
               </h3>
               <table className="w-full text-left text-xs">
                 <tbody className="divide-y divide-zinc-800/60">
@@ -312,7 +312,7 @@ export function WhatIfConsole() {
               Loosening guardrails recovers more money but raises compliance risk
               exposure; tightening does the opposite. The council-approved
               configuration lives on the{" "}
-              <span className="text-zinc-400">Council</span> page — simulations
+              <span className="text-zinc-400">Council</span> page; simulations
               here never change it.
             </p>
           </>

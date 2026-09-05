@@ -13,7 +13,7 @@ export function escalationTier(
     return {
       tier: 6,
       name: "Renewal limit reached",
-      action: "No more renewals — manual handoff",
+      action: "No more renewals: manual handoff",
       channels: ["manual"],
     };
   }

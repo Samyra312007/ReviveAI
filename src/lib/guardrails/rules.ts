@@ -338,13 +338,13 @@ export const RULES: Rule[] = [
         ? { passed: true }
         : {
             passed: false,
-            block_reason: "Voice max attempts reached — switching to text channel",
+            block_reason: "Voice max attempts reached, switching to text channel",
             action_taken: "SKIP",
           },
   },
   {
     id: "F4",
-    description: "Respect voice_opt_in preference — never force",
+    description: "Respect voice_opt_in preference, never force",
     applies: ({ channel }) => channel === "voice",
     check: ({ record }) =>
       record.voice_opt_in !== false

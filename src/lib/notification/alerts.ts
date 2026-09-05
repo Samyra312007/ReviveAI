@@ -33,8 +33,8 @@ function sendEmail(payload: BatchAlertPayload): Promise<void> {
 
   const subject =
     payload.event === "completed"
-      ? `✅ ReviveAI batch completed — ${JSON.stringify(payload.summary.processed ?? "?")} records`
-      : `🚨 ReviveAI batch FAILED — ${payload.error ?? "unknown error"}`;
+      ? `✅ ReviveAI batch completed: ${JSON.stringify(payload.summary.processed ?? "?")} records`
+      : `🚨 ReviveAI batch FAILED: ${payload.error ?? "unknown error"}`;
 
   return fetch("https://api.resend.com/emails", {
     method: "POST",

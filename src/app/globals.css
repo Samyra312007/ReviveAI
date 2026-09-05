@@ -5,14 +5,14 @@
  *
  * Strategy: the incumbent UI was a dark zinc/emerald world. The zinc scale is
  * remapped so every existing utility (bg-zinc-950, border-zinc-800,
- * text-zinc-400, ...) resolves to a warm cream-clay palette instead — one
+ * text-zinc-400, ...) resolves to a warm cream-clay palette instead, one
  * token change transforms the whole app. `clay-*` tokens name the few
  * surfaces that didn't exist before (page ground, raised panels, inset wells).
  * Depth comes from soft dual-direction shadows, never from dark fills.
  */
 
 @theme {
-  /* Type — Figtree (geometric, warm, minimal), loaded via next/font */
+  /* Type: Figtree (geometric, warm, minimal), loaded via next/font */
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 

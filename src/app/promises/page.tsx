@@ -97,7 +97,7 @@ export default async function PromisesPage() {
       <section className="mt-10">
         <h2 className="mb-3 text-lg font-semibold">Broken Promises Requiring Action</h2>
         {broken.length === 0 ? (
-          <p className="text-sm text-zinc-500">No broken promises — all on track.</p>
+          <p className="text-sm text-zinc-500">No broken promises, all on track.</p>
         ) : (
           <Table headers={["Customer", "Record", "Amount", "Was Due", "Renewals", "Action"]}>
             {broken.map((p) => (
@@ -120,7 +120,7 @@ export default async function PromisesPage() {
                   {p.status === "escalated"
                     ? "Collections handoff"
                     : p.renewal_count >= 2
-                      ? "Escalate — no more renewals"
+                      ? "Escalate: no more renewals"
                       : "Send firm notice"}
                 </td>
               </tr>

@@ -32,7 +32,7 @@ const PAGES = [
   { href: "/results", label: "Recovery Results", desc: "Hero metrics and category breakdown" },
   { href: "/timeline", label: "Decision Timeline", desc: "Every decision in processing order" },
   { href: "/guardrails", label: "Guardrail Report", desc: "Blocks by rule with reasons" },
-  { href: "/exceptions", label: "Exception Report", desc: "What the agent couldn't handle — honestly" },
+  { href: "/exceptions", label: "Exception Report", desc: "What the agent couldn't handle, honestly" },
   { href: "/audit", label: "Full Audit Log", desc: "Searchable, filterable, exportable" },
 ];
 
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
       <>
         <PageHeader
           title="ReviveAI Control Center"
-          description="Autonomous revenue recovery agent — detect → diagnose → intervene → measure."
+          description="Autonomous revenue recovery agent: detect → diagnose → intervene → measure."
         />
         <EmptyState message="No batch results yet. Run the batch from below or via `npm run run-batch`." />
         <div className="mt-6">
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
     <>
       <PageHeader
         title="ReviveAI Control Center"
-        description="Autonomous revenue recovery agent — detect → diagnose → intervene → measure."
+        description="Autonomous revenue recovery agent: detect → diagnose → intervene → measure."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -86,8 +86,8 @@ export default async function DashboardPage() {
         />
         <MetricCard
           label="Detection F1"
-          value={String(report.accuracy.overall.f1 ?? "—")}
-          sub={`precision ${report.accuracy.overall.precision ?? "—"} · recall ${report.accuracy.overall.recall ?? "—"}`}
+          value={String(report.accuracy.overall.f1 ?? "-")}
+          sub={`precision ${report.accuracy.overall.precision ?? "-"} · recall ${report.accuracy.overall.recall ?? "-"}`}
           accent="text-violet-400"
         />
         {report.prevention && report.prevention.prevented > 0 && (

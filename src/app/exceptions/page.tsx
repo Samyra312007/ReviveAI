@@ -22,7 +22,7 @@ export default async function ExceptionsPage() {
   if (!report) {
     return (
       <>
-        <PageHeader title="Exception Report" description="Records the agent couldn't handle — and exactly why." />
+        <PageHeader title="Exception Report" description="Records the agent couldn't handle, and exactly why." />
         <EmptyState message="No results yet. Run the batch via `npm run run-batch`." />
       </>
     );
@@ -38,7 +38,7 @@ export default async function ExceptionsPage() {
     <>
       <PageHeader
         title="Exception Report"
-        description="Honest reporting: these records were skipped, escalated, or blocked — with the exact reason. No cherry-picking."
+        description="Honest reporting: these records were skipped, escalated, or blocked, with the exact reason. No cherry-picking."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -50,7 +50,7 @@ export default async function ExceptionsPage() {
       <section className="mt-10">
         <h2 className="mb-3 text-lg font-semibold">All Exceptions</h2>
         {report.exceptions.length === 0 ? (
-          <p className="text-sm text-zinc-500">No exceptions — every record was handled.</p>
+          <p className="text-sm text-zinc-500">No exceptions: every record was handled.</p>
         ) : (
           <Table headers={["Record", "Type", "Outcome", "Reason", ""]}>
             {report.exceptions.map((e) => (

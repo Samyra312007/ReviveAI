@@ -196,7 +196,7 @@ export function OnboardingWizard() {
             <p className="text-xs text-zinc-500">
               Enable events: <code className="text-zinc-300">payment.failed</code>,{" "}
               <code className="text-zinc-300">subscription.failed</code>,{" "}
-              <code className="text-zinc-300">invoice.expired</code>. Save this secret — it won&apos;t
+              <code className="text-zinc-300">invoice.expired</code>. Save this secret; it won&apos;t
               be shown again.
             </p>
           </div>
@@ -204,7 +204,7 @@ export function OnboardingWizard() {
             onClick={() => setStep("import")}
             className="mt-5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-clay-btn transition hover:bg-emerald-450 active:translate-y-0.5"
           >
-            Done — next step
+            Done, next step
           </button>
         </div>
       )}

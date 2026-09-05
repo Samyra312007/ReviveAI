@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const probe = await razorpayApiCall("GET", "/payments?count=1", keyId, keySecret);
   if (!probe.ok) {
     return NextResponse.json(
-      { error: "Invalid Razorpay keys — could not authenticate with the API" },
+      { error: "Invalid Razorpay keys, could not authenticate with the API" },
       { status: 400 },
     );
   }

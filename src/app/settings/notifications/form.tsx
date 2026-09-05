@@ -107,7 +107,7 @@ export function NotificationSettings() {
         <div className="mt-4 space-y-3">
           {(
             [
-              ["whatsappEnabled", "WhatsApp", "Meta Cloud API — best delivery + replies"],
+              ["whatsappEnabled", "WhatsApp", "Meta Cloud API: best delivery + replies"],
               ["emailEnabled", "Email", "Transactional email via Resend"],
               ["smsEnabled", "SMS", "Text-only fallback (requires provider keys)"],
             ] as const

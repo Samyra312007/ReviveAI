@@ -77,7 +77,7 @@ export function routeDetection(
   feasibility: { feasible: boolean; reason: string },
 ): { route: DetectionRoute; reason: string } {
   if (category === "control") {
-    return { route: "no_action", reason: "Healthy record — no intervention needed" };
+    return { route: "no_action", reason: "Healthy record, no intervention needed" };
   }
   if (category === "unknown" || confidence < CONFIDENCE_ESCALATE) {
     return { route: "skip", reason: `Low detection confidence (${confidence})` };
@@ -86,11 +86,11 @@ export function routeDetection(
     return { route: "skip", reason: feasibility.reason };
   }
   if (confidence >= CONFIDENCE_INTERVENE) {
-    return { route: "intervene", reason: `High confidence (${confidence}) — routing to agent core` };
+    return { route: "intervene", reason: `High confidence (${confidence}), routing to agent core` };
   }
   return {
     route: "escalate",
-    reason: `Medium confidence (${confidence}) — routed to escalation queue for manual review`,
+    reason: `Medium confidence (${confidence}), routed to escalation queue for manual review`,
   };
 }
 
